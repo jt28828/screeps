@@ -1,0 +1,21 @@
+{
+  "name": "james-screeps",
+  "version": "1.0.0",
+  "description": "My repo for the screeps game",
+  "main": "main.js",
+  "scripts": {
+    "lint": "tslint --project ./tsconfig.json --fix",
+    "build": "tsc && npm run pack",
+    "pack": "webpack"
+  },
+  "author": "James Turner",
+  "license": "ISC",
+  "dependencies": {
+    "@types/screeps": "^2.5.3"
+  },
+  "devDependencies": {
+    "terser-webpack-plugin": "^1.2.3",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.0"
+  }
+}

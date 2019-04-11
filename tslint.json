@@ -1,0 +1,47 @@
+{
+    "defaultSeverity": "error",
+    "extends": [
+        "tslint:recommended"
+    ],
+    "rules": {
+        "no-namespace": false,
+        "prefer-for-of": false,
+        "indent": {
+            "options": [
+                "spaces",
+                4
+            ]
+        },
+        "max-line-length": {
+            "options": [
+                {
+                    "limit": 120
+                }
+            ]
+        },
+        "quotemark": {
+            "options": [
+                "double"
+            ]
+        },
+        "semicolon": {
+            "options": [
+                "always"
+            ]
+        },
+        "whitespace": {
+            "options": [
+                "check-branch",
+                "check-decl",
+                "check-operator",
+                "check-module",
+                "check-rest-spread",
+                "check-type",
+                "check-type-operator",
+                "check-preblock"
+            ]
+        },
+        "restrict-plus-operands": true
+    },
+    "rulesDirectory": []
+}
