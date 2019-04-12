@@ -2,7 +2,7 @@ import { IMemory } from "./interfaces/memory";
 import { MemoryController } from "./memory/memory-controller";
 import { RoomController } from "./rooms/room-controller";
 
-console.table(`Script has been refreshed: ${Date.now()}`);
+console.log(`Script has been refreshed: ${Date.now()}`);
 
 initialiseScript();
 

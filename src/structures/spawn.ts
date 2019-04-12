@@ -1,5 +1,6 @@
 import { ICreepCounts } from "../interfaces/creep-counts";
 import { ICurrentRoomState } from "../interfaces/room";
+import { IMyCreepMemory } from "../interfaces/my-creep";
 
 // The levels for a room at level 1
 const level1Counts: ICreepCounts = {
@@ -46,16 +47,19 @@ export class SpawnController {
 
     /** Spawns a level 1 harvester creep  */
     public static spawnLevel1Harvester(spawner: StructureSpawn) {
-        spawner.spawnCreep([WORK, MOVE, CARRY], `Harvester${Date.now()}`);
+        const memory: IMyCreepMemory = { role: "harvester" };
+        spawner.spawnCreep([WORK, MOVE, CARRY], `Harvester${Date.now()}`, { memory });
     }
 
     /** Spawns a level 1 upgrader creep  */
     public static spawnLevel1Upgrader(spawner: StructureSpawn) {
-        spawner.spawnCreep([WORK, MOVE, CARRY], `Upgrader${Date.now()}`);
+        const memory: IMyCreepMemory = { role: "harvester" };
+        spawner.spawnCreep([WORK, MOVE, CARRY], `Upgrader${Date.now()}`, { memory });
     }
 
     /** Spawns a level 1 builder creep  */
     public static spawnLevel1Builder(spawner: StructureSpawn) {
-        spawner.spawnCreep([WORK, MOVE, CARRY], `Builder${Date.now()}`);
+        const memory: IMyCreepMemory = { role: "harvester" };
+        spawner.spawnCreep([WORK, MOVE, CARRY], `Builder${Date.now()}`, { memory });
     }
 }
