@@ -1,5 +1,6 @@
 import { IMemory } from "./interfaces/memory";
 import { MemoryController } from "./memory/memory-controller";
+import { RoomController } from "./rooms/room-controller";
 
 console.table(`Script has been refreshed: ${Date.now()}`);
 
@@ -10,9 +11,13 @@ export function loop(): void {
     // Clean up memory
     MemoryController.clean();
 
-    // Assign commands via all rooms
+    // Assign commands via all rooms. I only have one room for now so just control that
+    const myRoomNames = Object.keys(Game.rooms);
 
-
+    const myRoomCount = myRoomNames.length;
+    for (let i = 0; i < myRoomCount; i++) {
+        RoomController.control(Game.rooms[myRoomNames[i]]);
+    }
 }
 
 /** Performs any actions that need to occur only once on script reload */
