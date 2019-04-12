@@ -53,13 +53,13 @@ export class SpawnController {
 
     /** Spawns a level 1 upgrader creep  */
     public static spawnLevel1Upgrader(spawner: StructureSpawn) {
-        const memory: IMyCreepMemory = { role: "harvester" };
+        const memory: IMyCreepMemory = { role: "upgrader" };
         spawner.spawnCreep([WORK, MOVE, CARRY], `Upgrader${Date.now()}`, { memory });
     }
 
     /** Spawns a level 1 builder creep  */
     public static spawnLevel1Builder(spawner: StructureSpawn) {
-        const memory: IMyCreepMemory = { role: "harvester" };
+        const memory: IMyCreepMemory = { role: "builder" };
         spawner.spawnCreep([WORK, MOVE, CARRY], `Builder${Date.now()}`, { memory });
     }
 }

@@ -1,6 +1,7 @@
 import { IHarvesterCreep } from "../interfaces/harvester-creep";
+import { CreepController } from "./creep";
 
-export class HarvesterController {
+export class HarvesterController extends CreepController {
 
     public static work(creep: IHarvesterCreep) {
         if (creep.carry.energy < creep.carryCapacity) {
@@ -24,14 +25,6 @@ export class HarvesterController {
     public static retreat() {
         // TODO Implement
         throw new Error("Not Implemented");
-    }
-
-    /** Attempts to harvest energy if within range or moves closer if not */
-    private static harvestOrTravel(creep: IHarvesterCreep) {
-        const closestMiningZone = creep.room.find(FIND_SOURCES)[0];
-        if (creep.harvest(closestMiningZone) === ERR_NOT_IN_RANGE) {
-            creep.moveTo(closestMiningZone, { visualizePathStyle: { stroke: "#FFCC00" } });
-        }
     }
 
     private static depositEnergyOrTravel(creep: IHarvesterCreep) {

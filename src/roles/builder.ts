@@ -1,6 +1,7 @@
 import { IBuilderCreep } from "../interfaces/builder-creep";
+import { CreepController } from "./creep";
 
-export class BuilderController {
+export class BuilderController extends CreepController {
     public static work(creep: IBuilderCreep): void {
 
         if (creep.memory.isBuilding && creep.carry.energy === 0) {
@@ -46,14 +47,6 @@ export class BuilderController {
                 // Move and color with construction yellow
                 creep.moveTo(closestSite, { visualizePathStyle: { stroke: "#FFCC00" } });
             }
-        }
-    }
-
-    /** Attempts to harvest energy if within range or moves closer if not */
-    private static harvestOrTravel(creep: IBuilderCreep) {
-        const closestMiningZone = creep.room.find(FIND_SOURCES)[0];
-        if (creep.harvest(closestMiningZone) === ERR_NOT_IN_RANGE) {
-            creep.moveTo(closestMiningZone, { visualizePathStyle: { stroke: "#ffaa00" } });
         }
     }
 }

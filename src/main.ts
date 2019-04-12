@@ -2,8 +2,6 @@ import { IMemory } from "./interfaces/memory";
 import { MemoryController } from "./memory/memory-controller";
 import { RoomController } from "./rooms/room-controller";
 
-console.log(`Script has been refreshed: ${Date.now()}`);
-
 initialiseScript();
 
 /** The loop function called by the game once every tick. Assigns commands to everything */
@@ -18,6 +16,7 @@ export function loop(): void {
     for (let i = 0; i < myRoomCount; i++) {
         RoomController.control(Game.rooms[myRoomNames[i]]);
     }
+    console.log(`Using ${Game.cpu.getUsed()} CPU`);
 }
 
 /** Performs any actions that need to occur only once on script reload */

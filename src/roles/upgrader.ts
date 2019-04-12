@@ -1,7 +1,8 @@
 import { IUpgraderCreep } from "../interfaces/upgrader-creep";
+import { CreepController } from "./creep";
 
 
-export class UpgraderController {
+export class UpgraderController extends CreepController {
     public static work(creep: IUpgraderCreep) {
 
         if (creep.memory.isUpgrading && creep.carry.energy === 0) {
@@ -43,14 +44,6 @@ export class UpgraderController {
             if (creep.upgradeController(structureController) === ERR_NOT_IN_RANGE) {
                 creep.moveTo(structureController, { visualizePathStyle: { stroke: "#ffffff" } });
             }
-        }
-    }
-
-    /** Attempts to harvest energy if within range or moves closer if not */
-    private static harvestOrTravel(creep: IUpgraderCreep) {
-        const closestMiningZone = creep.room.find(FIND_SOURCES)[0];
-        if (creep.harvest(closestMiningZone) === ERR_NOT_IN_RANGE) {
-            creep.moveTo(closestMiningZone, { visualizePathStyle: { stroke: "#ffaa00" } });
         }
     }
 }
