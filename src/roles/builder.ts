@@ -33,6 +33,7 @@ export class BuilderController extends CreepController {
 
     /** Start using collected energy to build structures */
     private static startBuilding(creep: IBuilderCreep) {
+        this.stopHarvesting(creep);
         creep.memory.isBuilding = true;
         creep.say("👷 build");
     }

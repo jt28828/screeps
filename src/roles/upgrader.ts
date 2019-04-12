@@ -35,6 +35,7 @@ export class UpgraderController extends CreepController {
     /** Start using collected energy to upgrade structures */
     private static startUpgrading(creep: IUpgraderCreep) {
         creep.memory.isUpgrading = true;
+        this.stopHarvesting(creep);
         creep.say("⚡ upgrade");
     }
 
