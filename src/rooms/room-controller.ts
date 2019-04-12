@@ -3,6 +3,7 @@ import { ICurrentRoomState } from "../interfaces/room";
 import { BuilderController } from "../roles/builder";
 import { HarvesterController } from "../roles/harvester";
 import { UpgraderController } from "../roles/upgrader";
+import { SpawnController } from "../structures/spawn";
 import { TowerController } from "../structures/tower";
 import { isBuilder, isHarvester, isUpgrader } from "../utility/creep-utils";
 
@@ -57,8 +58,11 @@ export class RoomController {
     /** Commands all the structures in the room to perform their actions */
     private static commandStructures(roomState: ICurrentRoomState) {
         const justTowers = roomState.structures.filter((s) => s.structureType === STRUCTURE_TOWER) as StructureTower[];
+        const justSpawners = roomState.structures.filter((s) => s.structureType === STRUCTURE_SPAWN) as StructureSpawn[];
 
+        // Command all the structures to perform actions
         this.commandTowers(roomState, justTowers);
+        this.commandSpawners(roomState, justSpawners);
     }
 
     /** Commands the towers in this room to shoot or heal */
@@ -72,6 +76,20 @@ export class RoomController {
         for (let i = 0; i < towerCount; i++) {
             // Command a tower to perform an action if applicable
             TowerController.command(towers[i], state);
+        }
+    }
+
+    /** Commands the spawners in this room to spawn if necessary */
+    private static commandSpawners(state: ICurrentRoomState, spawns?: StructureSpawn[]) {
+        if (spawns == null || spawns.length === 0) {
+            // No spawns present
+            return;
+        }
+
+        const spawnCount = spawns.length;
+        for (let i = 0; i < spawnCount; i++) {
+            // Command a spawn to perform an action if applicable
+            SpawnController.spawn(spawns[i], state);
         }
     }
 }
