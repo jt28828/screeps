@@ -1,7 +1,7 @@
-import { IBuilderCreep } from "../interfaces/creeps/builder-creep";
-import { IHarvesterCreep } from "../interfaces/creeps/harvester-creep";
-import { IMyCreep } from "../interfaces/creeps/my-creep";
-import { IUpgraderCreep } from "../interfaces/creeps/upgrader-creep";
+import { IBuilderCreep } from "../interfaces/builder-creep";
+import { IHarvesterCreep } from "../interfaces/harvester-creep";
+import { IMyCreep } from "../interfaces/my-creep";
+import { IUpgraderCreep } from "../interfaces/upgrader-creep";
 
 /** Determines whether a creep is a harvester */
 export function isHarvester(creep: IMyCreep): creep is IHarvesterCreep {

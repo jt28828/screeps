@@ -1,6 +1,7 @@
-import { IUpgraderCreep } from "../interfaces/creeps/upgrader-creep";
+import { IUpgraderCreep } from "../interfaces/upgrader-creep";
 
-export class UpgraderFunctions {
+
+export class UpgraderController {
     public static work(creep: IUpgraderCreep) {
 
         if (creep.memory.isUpgrading && creep.carry.energy === 0) {

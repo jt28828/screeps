@@ -1,6 +1,6 @@
-import { IBuilderCreep } from "../interfaces/creeps/builder-creep";
+import { IBuilderCreep } from "../interfaces/builder-creep";
 
-export class BuilderFunctions {
+export class BuilderController {
     public static work(creep: IBuilderCreep): void {
 
         if (creep.memory.isBuilding && creep.carry.energy === 0) {

@@ -1,6 +1,6 @@
-import { IHarvesterCreep } from "../interfaces/creeps/harvester-creep";
+import { IHarvesterCreep } from "../interfaces/harvester-creep";
 
-export class HarvesterFunctions {
+export class HarvesterController {
 
     public static work(creep: IHarvesterCreep) {
         if (creep.carry.energy < creep.carryCapacity) {

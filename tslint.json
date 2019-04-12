@@ -4,6 +4,7 @@
         "tslint:recommended"
     ],
     "rules": {
+        "no-console": false,
         "no-namespace": false,
         "prefer-for-of": false,
         "indent": {
