@@ -1,22 +1,9 @@
+import { level1CreepCounts, level2CreepCounts } from "../constants/creep-counts";
 import { CreepFactory } from "../factories/creep-factory";
 import { ICreepCounts } from "../interfaces/creep-counts";
 import { IMyCreep } from "../interfaces/my-creep";
 import { INewCreep } from "../interfaces/new-creep";
 import { ICurrentRoomState } from "../interfaces/room";
-
-// The levels for a room at level 1
-const level1Counts: ICreepCounts = {
-    builder: 2,
-    harvester: 3,
-    upgrader: 2,
-};
-
-// The levels for a room at level 2. Same as 1 for now until I figure out the game a bit more
-const level2Counts: ICreepCounts = {
-    builder: 2,
-    harvester: 3,
-    upgrader: 2,
-};
 
 /** Contains logic to control room spawns */
 export class SpawnController {
@@ -32,13 +19,13 @@ export class SpawnController {
     public static spawn(spawner: StructureSpawn, roomState: ICurrentRoomState) {
         switch (roomState.roomLevel) {
             case 1:
-                this.spawnCreeps(spawner, roomState.slaves, level1Counts, 1);
+                this.spawnCreeps(spawner, roomState.slaves, level1CreepCounts, 1);
                 break;
             case 2:
-                this.spawnCreeps(spawner, roomState.slaves, level2Counts, 2);
+                this.spawnCreeps(spawner, roomState.slaves, level2CreepCounts, 2);
                 break;
             default:
-                this.spawnCreeps(spawner, roomState.slaves, level1Counts, 1);
+                this.spawnCreeps(spawner, roomState.slaves, level1CreepCounts, 1);
                 break;
         }
     }
