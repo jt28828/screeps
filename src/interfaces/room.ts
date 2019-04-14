@@ -7,4 +7,5 @@ export interface ICurrentRoomState {
     damagedAllies: Creep[];
     damagedStructures: Structure[];
     enemies: Creep[];
+    roomLevel: number;
 }

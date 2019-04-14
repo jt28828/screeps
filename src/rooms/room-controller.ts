@@ -26,13 +26,29 @@ export class RoomController {
         const damagedAllies = slaves.filter((x) => x.hits < x.hitsMax);
         const damagedStructures = structures.filter((x) => x.hits < x.hitsMax);
 
+        // Calculate room level by the number of extensions and controller level
+        const roomLevel = this.calculateRoomLevel(room, structures);
+
         return {
             damagedAllies,
             damagedStructures,
             enemies,
+            roomLevel,
             slaves,
             structures,
         };
+    }
+
+    /** Calculates the level of the room based off the controller level and the number of extensions */
+    private static calculateRoomLevel(room: Room, structures: AnyOwnedStructure[]) {
+        const controllerLvl = (room.controller as StructureController).level;
+        const extensionCount = structures.filter((struct) => struct.structureType === STRUCTURE_EXTENSION).length;
+
+        if (controllerLvl === 2 && extensionCount > 1) {
+            return 2;
+        }
+
+        return 1;
     }
 
     /** Commands all the creeps in the room to perform their actions */
