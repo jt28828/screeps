@@ -63,7 +63,7 @@ export class HarvesterController extends CreepController {
 
     /** Attempts to deposit energy in either containers or storage */
     private static depositEnergyInStorage(creep: IHarvesterCreep, myStructures: Structure[]): ScreepsReturnCode {
-        const storageStructures = StructureUtils.findStorageStructures(myStructures);
+        const storageStructures = StructureUtils.findNonFullStorageStructures(myStructures);
 
         if (storageStructures == null) {
             return ERR_NOT_FOUND;

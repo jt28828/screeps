@@ -5,10 +5,14 @@ import { StructureUtils } from "../utility/structure-utils";
 export class CreepController {
 
     /** Attempts to harvest energy if within range or moves closer if not */
-    protected static harvestOrTravel(creep: IMyCreep) {
-        let miningZone: Source = this.getClosestSource(creep);
+    protected static harvestOrTravel(creep: IMyCreep, allowLongrange: boolean = false) {
+        let miningZone: Source;
         if (creep.memory.miningTarget == null) {
-            miningZone = this.getRandomSource(creep);
+            if (!allowLongrange) {
+                miningZone = this.getClosestSource(creep);
+            } else {
+                miningZone = this.getRandomSource(creep);
+            }
             creep.memory.miningTarget = miningZone.id;
         } else {
             const currentMiningTarget = Game.getObjectById(creep.memory.miningTarget) as Source;
@@ -29,15 +33,19 @@ export class CreepController {
 
     /** Attempts to take energy from either containers or storage */
     protected static retrieveEnergyFromStorage(creep: IMyCreep, myStructures: Structure[]): ScreepsReturnCode {
-        const storageStructures = StructureUtils.findStorageStructures(myStructures);
+        const storageStructures = StructureUtils.findNonEmptyStorageStructures(myStructures) as StructureContainer[];
 
         if (storageStructures == null) {
             return ERR_NOT_FOUND;
         }
 
         // Move to and take energy from any storage container
-        if (creep.withdraw(storageStructures[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+        const response = creep.withdraw(storageStructures[0], RESOURCE_ENERGY);
+        if (response === ERR_NOT_IN_RANGE) {
             return creep.moveTo(storageStructures[0], { visualizePathStyle: { stroke: "#ffffff" } });
+        } else if (response !== OK) {
+            // Something else went wrong. Return to let caller to know to stop
+            return ERR_NOT_ENOUGH_ENERGY;
         }
 
         return OK;

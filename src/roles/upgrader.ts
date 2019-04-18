@@ -16,7 +16,7 @@ export class UpgraderController extends CreepController {
         if (creep.memory.isUpgrading) {
             this.upgradeOrTravel(creep);
         } else {
-            this.harvestOrTravel(creep);
+            this.harvestOrTravel(creep, true);
         }
     }
 

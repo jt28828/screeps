@@ -21,18 +21,20 @@ export class RoomController {
     /** Returns information about the current state of the room */
     private static getCurrentRoomState(room: Room): ICurrentRoomState {
         const slaves = room.find(FIND_MY_CREEPS) as IMyCreep[];
-        const structures = room.find(FIND_MY_STRUCTURES);
+        const structures = room.find(FIND_STRUCTURES);
+        const myStructures = room.find(FIND_MY_STRUCTURES);
         const enemies = room.find(FIND_HOSTILE_CREEPS);
         const damagedAllies = slaves.filter((x) => x.hits < x.hitsMax);
         const damagedStructures = structures.filter((x) => x.hits < x.hitsMax);
 
         // Calculate room level by the number of extensions and controller level
-        const roomLevel = this.calculateRoomLevel(room, structures);
+        const roomLevel = this.calculateRoomLevel(room, myStructures);
 
         return {
             damagedAllies,
             damagedStructures,
             enemies,
+            myStructures,
             roomLevel,
             slaves,
             structures,

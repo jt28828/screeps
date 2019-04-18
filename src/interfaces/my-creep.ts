@@ -11,4 +11,6 @@ export interface IMyCreepMemory extends CreepMemory {
     role: MyCreepRoles;
     level: number;
     miningTarget?: string;
+    /** Whether or not the creep is currently collecting energy from a container */
+    isCollecting?: boolean;
 }
