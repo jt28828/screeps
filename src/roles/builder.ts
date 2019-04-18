@@ -2,10 +2,10 @@ import { IBuilderCreep } from "../interfaces/builder-creep";
 import { CreepController } from "./creep";
 
 export class BuilderController extends CreepController {
-    public static work(creep: IBuilderCreep): void {
+    public static work(creep: IBuilderCreep, myStructures: Structure[]): void {
 
         if (creep.memory.isBuilding && creep.carry.energy === 0) {
-            this.startHarvesting(creep);
+            this.startHarvesting(creep, myStructures);
         }
 
         if (!creep.memory.isBuilding && creep.carry.energy === creep.carryCapacity) {
@@ -26,7 +26,11 @@ export class BuilderController extends CreepController {
     }
 
     /** Start collecting energy to use for building */
-    private static startHarvesting(creep: IBuilderCreep) {
+    private static startHarvesting(creep: IBuilderCreep, myStructures: Structure[]) {
+        if (this.retrieveEnergyFromStorage(creep, myStructures) === ERR_NOT_FOUND) {
+            this.harvestOrTravel(creep);
+        }
+
         creep.memory.isBuilding = false;
         creep.say("⛏️ harvest");
     }

@@ -1,5 +1,6 @@
 import { IHarvesterCreep } from "../interfaces/harvester-creep";
 import { IMyCreep } from "../interfaces/my-creep";
+import { StructureUtils } from "../utility/structure-utils";
 import { CreepController } from "./creep";
 
 export class HarvesterController extends CreepController {
@@ -62,15 +63,9 @@ export class HarvesterController extends CreepController {
 
     /** Attempts to deposit energy in either containers or storage */
     private static depositEnergyInStorage(creep: IHarvesterCreep, myStructures: Structure[]): ScreepsReturnCode {
-        const storageStructures = myStructures.filter((structure) => {
-            return (
-                structure.structureType === STRUCTURE_CONTAINER ||
-                structure.structureType === STRUCTURE_STORAGE
-            );
-        });
+        const storageStructures = StructureUtils.findStorageStructures(myStructures);
 
-        if (storageStructures == null || storageStructures.length === 0) {
-            // No energy storing structures found
+        if (storageStructures == null) {
             return ERR_NOT_FOUND;
         }
 

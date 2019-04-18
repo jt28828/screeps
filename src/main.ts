@@ -4,6 +4,7 @@ import { RoomController } from "./rooms/room-controller";
 
 initialiseScript();
 
+console.log(`script updated: ${Date.now()}`);
 /** The loop function called by the game once every tick. Assigns commands to everything */
 export function loop(): void {
     // Clean up memory

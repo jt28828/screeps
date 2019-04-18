@@ -66,7 +66,7 @@ export class RoomController {
                 UpgraderController.work(thisCreep);
             }
             if (isBuilder(thisCreep)) {
-                BuilderController.work(thisCreep);
+                BuilderController.work(thisCreep, state.structures);
             }
         }
     }
