@@ -10,6 +10,10 @@ export class MemoryController {
      * they have died because they aren't any use to me now
      */
     private static forgetWorthlessWeaklings(): void {
+        if (Memory.creeps == null) {
+            return;
+        }
+
         const allCreepNames = Object.keys(Memory.creeps);
         const allCreepsCount = allCreepNames.length;
         for (let i = 0; i < allCreepsCount; i++) {
