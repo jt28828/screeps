@@ -7,5 +7,4 @@ export interface IBuilderCreep extends IMyCreep {
 export interface IMyBuilderMemory extends IMyCreepMemory {
     /** Whether or not the creep is currently building */
     isBuilding: boolean;
-    isMining: boolean;
 }

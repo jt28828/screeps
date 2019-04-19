@@ -65,10 +65,10 @@ export class RoomController {
                 HarvesterController.work(thisCreep);
             }
             if (isUpgrader(thisCreep)) {
-                UpgraderController.work(thisCreep);
+                UpgraderController.work(thisCreep, state.structures);
             }
             if (isBuilder(thisCreep)) {
-                BuilderController.work(thisCreep, state.structures);
+                BuilderController.work(thisCreep, state);
             }
         }
     }

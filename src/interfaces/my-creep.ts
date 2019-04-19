@@ -13,4 +13,6 @@ export interface IMyCreepMemory extends CreepMemory {
     miningTarget?: string;
     /** Whether or not the creep is currently collecting energy from a container */
     isCollecting?: boolean;
+    /** Whether or not the creep is currently collecting energy from a source */
+    isMining?: boolean;
 }

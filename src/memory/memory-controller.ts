@@ -82,9 +82,4 @@ export class MemoryController {
     //         (Memory as IMemory).myMemory.roomNames.splice(romPos, 1);
     //     }
     // }
-
-    // /** TODO Implement remembering before forgetting */
-    // private static forgetDestroyedStructures(): void {
-    //     throw new Error("I Can't forget about structures because I can't remember them");
-    // }
 }

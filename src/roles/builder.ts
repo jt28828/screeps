@@ -1,8 +1,9 @@
 import { IBuilderCreep } from "../interfaces/builder-creep";
+import { ICurrentRoomState } from "../interfaces/room";
 import { CreepController } from "./creep";
 
 export class BuilderController extends CreepController {
-    public static work(creep: IBuilderCreep, roomStructures: Structure[]): void {
+    public static work(creep: IBuilderCreep, roomState: ICurrentRoomState): void {
 
         if (creep.memory.isBuilding && creep.carry.energy === 0) {
             this.startHarvesting(creep);
@@ -13,11 +14,17 @@ export class BuilderController extends CreepController {
         }
 
         if (creep.memory.isBuilding) {
-            this.buildOrTravel(creep);
+            const didBuild = this.buildOrTravel(creep);
+
+            if (!didBuild) {
+                // No building sites left. Try repairing something
+                this.repairOrTravel(creep, roomState.myStructures);
+            }
+
         } else {
             if (!creep.memory.isMining) {
                 // Creep isn't mining yet
-                const attempt = this.retrieveEnergyFromStorage(creep, roomStructures);
+                const attempt = this.retrieveEnergyFromStorage(creep, roomState.structures);
                 if (attempt !== ERR_NOT_FOUND && attempt !== ERR_NOT_ENOUGH_ENERGY) {
                     // Container was found and has energy in it. Collect from it
                     creep.memory.isCollecting = true;
@@ -54,7 +61,7 @@ export class BuilderController extends CreepController {
     }
 
     /** Attempts to build if within range or moves closer if not */
-    private static buildOrTravel(creep: IBuilderCreep) {
+    private static buildOrTravel(creep: IBuilderCreep): boolean {
         const constructionSites = creep.room.find(FIND_CONSTRUCTION_SITES);
         if (constructionSites.length) {
             const closestSite = constructionSites[0];
@@ -63,6 +70,26 @@ export class BuilderController extends CreepController {
                 // Move and color with construction yellow
                 creep.moveTo(closestSite, { visualizePathStyle: { stroke: "#FFCC00" } });
             }
+        } else {
+            return false;
         }
+        return true;
+    }
+
+    /** Attempts to repair if within range or moves closer if not */
+    private static repairOrTravel(creep: IBuilderCreep, myStructures: AnyOwnedStructure[]): boolean {
+        const repairSites = myStructures.filter((strct) => strct.hits < strct.hitsMax);
+
+        if (repairSites.length) {
+            const closestSite = repairSites[0];
+
+            if (creep.repair(closestSite) === ERR_NOT_IN_RANGE) {
+                // Move and color with construction yellow
+                creep.moveTo(closestSite, { visualizePathStyle: { stroke: "#FFCC00" } });
+            }
+        } else {
+            return false;
+        }
+        return true;
     }
 }
