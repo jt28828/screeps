@@ -24,6 +24,7 @@
     "src/**/*"
   ],
   "exclude": [
-    "src/interfaces/creeps/*"
+    "node_modules",
+    "src/interfaces/*"
   ]
 }

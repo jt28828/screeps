@@ -2,11 +2,11 @@ import { IMyCreep } from "../interfaces/my-creep";
 import { ICurrentRoomState } from "../interfaces/room";
 import { BuilderController } from "../roles/builder";
 import { HarvesterController } from "../roles/harvester";
+import { MinerController } from "../roles/miner";
 import { UpgraderController } from "../roles/upgrader";
 import { SpawnController } from "../structures/spawn";
 import { TowerController } from "../structures/tower";
-import { isBuilder, isHarvester, isUpgrader, isMiner } from "../utility/creep-utils";
-import { MinerController } from "../roles/miner";
+import { isBuilder, isHarvester, isMiner, isUpgrader } from "../utility/creep-utils";
 
 export class RoomController {
     /**
