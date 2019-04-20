@@ -1,40 +1,48 @@
 import { IHarvesterCreep } from "../interfaces/harvester-creep";
 import { IMyCreep } from "../interfaces/my-creep";
+import { ICurrentRoomState } from "../interfaces/room";
 import { StructureUtils } from "../utility/structure-utils";
 import { CreepController } from "./creep";
 
 export class HarvesterController extends CreepController {
 
-    public static work(creep: IHarvesterCreep) {
-        if (creep.carry.energy < creep.carryCapacity) {
+    public static work(creep: IHarvesterCreep, roomState: ICurrentRoomState): void {
+
+        if (creep.memory.isDepositing && creep.carry.energy === 0) {
+            this.startHarvesting(creep);
+        }
+
+        if (creep.memory.isMining && creep.carry.energy === creep.carryCapacity) {
+            this.startDepositing(creep);
+        }
+
+        if (creep.memory.isDepositing) {
+            this.depositEnergyOrTravel(creep, roomState.structures);
+        } else {
             if (!creep.memory.isMining) {
                 this.startHarvesting(creep);
             }
-            this.harvestOrTravel(creep);
-        } else {
-            if (creep.memory.isMining) {
-                this.startDepositing(creep);
-            }
-            this.depositEnergyOrTravel(creep);
+            this.harvestOrTravel(creep, true);
         }
     }
 
     /** Start collecting energy to use for upgrading */
     private static startHarvesting(creep: IHarvesterCreep) {
         creep.memory.isMining = true;
+        creep.memory.isDepositing = false;
         creep.say("⛏️ harvest");
     }
 
     /** Start using collected energy to upgrade structures */
     private static startDepositing(creep: IHarvesterCreep) {
+        creep.memory.isDepositing = true;
         creep.memory.isMining = false;
         this.stopHarvesting(creep);
         creep.say("🚚 deposit");
     }
 
-    private static depositEnergyOrTravel(creep: IHarvesterCreep): void {
-        const myStructures = creep.room.find(FIND_STRUCTURES);
-        const energyStructures = myStructures.filter((structure) => {
+    private static depositEnergyOrTravel(creep: IHarvesterCreep, structures: AnyStructure[]): void {
+        const energyStructures = structures.filter((structure) => {
             return (structure.structureType === STRUCTURE_EXTENSION ||
                 structure.structureType === STRUCTURE_SPAWN ||
                 structure.structureType === STRUCTURE_TOWER) &&
@@ -52,7 +60,7 @@ export class HarvesterController extends CreepController {
         } else {
             // There are no structures around with space left for energy.
             // Attempt to store the energy in long term storage
-            const response = this.depositEnergyInStorage(creep, myStructures);
+            const response = this.depositEnergyInStorage(creep, structures);
 
             if (response !== OK) {
                 // Couldn't store in containers either. Gather at the flag to get out of the way

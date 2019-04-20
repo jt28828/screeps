@@ -5,7 +5,8 @@ import { HarvesterController } from "../roles/harvester";
 import { UpgraderController } from "../roles/upgrader";
 import { SpawnController } from "../structures/spawn";
 import { TowerController } from "../structures/tower";
-import { isBuilder, isHarvester, isUpgrader } from "../utility/creep-utils";
+import { isBuilder, isHarvester, isUpgrader, isMiner } from "../utility/creep-utils";
+import { MinerController } from "../roles/miner";
 
 export class RoomController {
     /**
@@ -46,7 +47,11 @@ export class RoomController {
         const controllerLvl = (room.controller as StructureController).level;
         const extensionCount = structures.filter((struct) => struct.structureType === STRUCTURE_EXTENSION).length;
 
-        if (controllerLvl === 2 && extensionCount > 1) {
+        if (controllerLvl > 2 && extensionCount >= 4) {
+            return 3;
+        }
+
+        if (controllerLvl > 1 && extensionCount >= 2) {
             return 2;
         }
 
@@ -62,13 +67,16 @@ export class RoomController {
             const thisCreep = allyCreeps[i];
 
             if (isHarvester(thisCreep)) {
-                HarvesterController.work(thisCreep);
+                HarvesterController.work(thisCreep, state);
             }
             if (isUpgrader(thisCreep)) {
                 UpgraderController.work(thisCreep, state.structures);
             }
             if (isBuilder(thisCreep)) {
                 BuilderController.work(thisCreep, state);
+            }
+            if (isMiner(thisCreep)) {
+                MinerController.work(thisCreep, state);
             }
         }
     }

@@ -66,9 +66,14 @@ export class BuilderController extends CreepController {
         if (constructionSites.length) {
             const closestSite = constructionSites[0];
 
-            if (creep.build(closestSite) === ERR_NOT_IN_RANGE) {
+            const didBuild = creep.build(closestSite);
+
+            if (didBuild === ERR_NOT_IN_RANGE) {
                 // Move and color with construction yellow
                 creep.moveTo(closestSite, { visualizePathStyle: { stroke: "#FFCC00" } });
+            } else if (didBuild !== OK) {
+                // Failed for a different reason. Return error
+                return false;
             }
         } else {
             return false;

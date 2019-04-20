@@ -4,7 +4,7 @@ import { RoomController } from "./rooms/room-controller";
 
 initialiseScript();
 
-console.log(`Script updated: Now running 1.3.0`);
+console.log(`Script updated: Now running 1.4.0`);
 
 // Values to be used between loops
 /** The name of my current room. TODO update to include multiple rooms when I get to that point */

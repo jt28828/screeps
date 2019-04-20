@@ -3,7 +3,7 @@ import { IMyCreep } from "./my-creep";
 /** Contains information about the current room */
 export interface ICurrentRoomState {
     slaves: IMyCreep[];
-    structures: Structure[];
+    structures: AnyStructure[];
     myStructures: AnyOwnedStructure[];
     damagedAllies: Creep[];
     damagedStructures: Structure[];

@@ -3,4 +3,5 @@ export interface ICreepCounts {
     builder: number;
     harvester: number;
     upgrader: number;
+    miner: number;
 }

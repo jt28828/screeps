@@ -1,4 +1,4 @@
-import { level1CreepCounts, level2CreepCounts } from "../constants/creep-counts";
+import { level1CreepCounts, level2CreepCounts, level3CreepCounts } from "../constants/creep-counts";
 import { CreepFactory } from "../factories/creep-factory";
 import { ICreepCounts } from "../interfaces/creep-counts";
 import { IMyCreep } from "../interfaces/my-creep";
@@ -15,6 +15,7 @@ export class SpawnController {
      * 1. Harvester
      * 2. Upgrader
      * 3. Builder
+     * 4. Miner
      */
     public static spawn(spawner: StructureSpawn, roomState: ICurrentRoomState) {
         switch (roomState.roomLevel) {
@@ -23,6 +24,9 @@ export class SpawnController {
                 break;
             case 2:
                 this.spawnCreeps(spawner, roomState.slaves, level2CreepCounts, 2);
+                break;
+            case 3:
+                this.spawnCreeps(spawner, roomState.slaves, level3CreepCounts, 3);
                 break;
             default:
                 this.spawnCreeps(spawner, roomState.slaves, level1CreepCounts, 1);
@@ -39,33 +43,47 @@ export class SpawnController {
         const upgraders = creeps.filter((x) => x.memory.role === "upgrader");
         const harvesters = creeps.filter((x) => x.memory.role === "harvester");
         const builders = creeps.filter((x) => x.memory.role === "builder");
+        const miners = creeps.filter((x) => x.memory.role === "miner");
 
         if (harvesters.length < counts.harvester) {
             // Check Harvesters
-            current = counts.harvester / harvesters.length;
+            current = this.calculateCurrentPercentage(counts.harvester, harvesters.length);
             newCreep = CreepFactory.generateHarvester(level);
             response = spawner.spawnCreep(newCreep.bodyParts, newCreep.name, newCreep.spawnOptions);
         } else if (upgraders.length < counts.upgrader) {
             // Check Upgraders
-            current = counts.upgrader - upgraders.length;
+            current = this.calculateCurrentPercentage(counts.upgrader, upgraders.length);
             newCreep = CreepFactory.generateUpgrader(level);
             response = spawner.spawnCreep(newCreep.bodyParts, newCreep.name, newCreep.spawnOptions);
         } else if (builders.length < counts.builder) {
             // Check Builders
-            current = counts.builder - builders.length;
+            current = this.calculateCurrentPercentage(counts.builder, builders.length);
             newCreep = CreepFactory.generateBuilder(level);
+            response = spawner.spawnCreep(newCreep.bodyParts, newCreep.name, newCreep.spawnOptions);
+        } else if (miners.length < counts.miner) {
+            // Check Builders
+            current = this.calculateCurrentPercentage(counts.miner, builders.length);
+            newCreep = CreepFactory.generateMiner(level);
             response = spawner.spawnCreep(newCreep.bodyParts, newCreep.name, newCreep.spawnOptions);
         }
 
         if (newCreep != null) {
             // A new creep was created. Generate it
-            if (response === ERR_NOT_ENOUGH_ENERGY) {
-                // Not enough energy to generate a creep of this level. If at less than half the required amount,
+            if (response !== OK) {
+                // Not enough energy to generate a creep of this level. If creeps not at required amount,
                 // Roll back a level and attempt to spawn a weaker creep to keep up with demand
-                if (level > 1 && current <= 0.5) {
+                if (level > 1 && current < 1) {
                     this.spawnCreeps(spawner, creeps, counts, --level);
                 }
             }
         }
+    }
+
+    /** Calculates the current percentage of creeps currently spawned compared to required */
+    private static calculateCurrentPercentage(target: number, current: number) {
+        if (current === 0 || target === 0) {
+            return 0;
+        }
+        return current / target;
     }
 }
