@@ -18,7 +18,7 @@ export class BuilderController extends CreepController {
 
             if (!didBuild) {
                 // No building sites left. Try repairing something
-                this.repairOrTravel(creep, roomState.myStructures);
+                this.repairOrTravel(creep, roomState.structures);
             }
 
         } else {
@@ -82,7 +82,7 @@ export class BuilderController extends CreepController {
     }
 
     /** Attempts to repair if within range or moves closer if not */
-    private static repairOrTravel(creep: IBuilderCreep, myStructures: AnyOwnedStructure[]): boolean {
+    private static repairOrTravel(creep: IBuilderCreep, myStructures: AnyStructure[]): boolean {
         const repairSites = myStructures.filter((strct) => strct.hits < strct.hitsMax);
 
         if (repairSites.length) {

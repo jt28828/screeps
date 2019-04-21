@@ -41,23 +41,23 @@ export class MinerController extends CreepController {
     }
 
     private static depositEnergyOrTravel(creep: IMinerCreep, roomState: ICurrentRoomState): void {
-        const towers: any[] = [];
-        // const towers = roomState.myStructures.filter((structure) => {
-        //     return structure.structureType === STRUCTURE_TOWER &&
-        //         structure.energy < structure.energyCapacity;
-        // });
+        // Attempt to store the energy in long term storage
+        const response = this.depositEnergyInStorage(creep, roomState.structures);
+
+        if (response === OK) {
+            // stored energy ok
+            return;
+        }
+
+        // No storage. Try a tower
+        const towers = roomState.myStructures.filter((structure) => {
+            return structure.structureType === STRUCTURE_TOWER &&
+                structure.energy < structure.energyCapacity;
+        });
 
         if (towers.length > 0) {
             if (creep.transfer(towers[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
                 creep.moveTo(towers[0], { visualizePathStyle: { stroke: "#ffffff" } });
-            }
-        } else {
-            // Attempt to store the energy in long term storage
-            const response = this.depositEnergyInStorage(creep, roomState.structures);
-
-            if (response !== OK) {
-                // Couldn't store in containers either. Gather at the flag to get out of the way
-                this.gatherAtFlag(creep);
             }
         }
     }
@@ -75,11 +75,5 @@ export class MinerController extends CreepController {
             return creep.moveTo(storageStructures[0], { visualizePathStyle: { stroke: "#ffffff" } });
         }
         return OK;
-    }
-
-    /** Sends the harvester creep to gather at the idle flag */
-    private static gatherAtFlag(creep: IMinerCreep): void {
-        const gatherFlag = Game.flags.harvesterIdle;
-        creep.moveTo(gatherFlag);
     }
 }

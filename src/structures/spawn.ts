@@ -60,7 +60,7 @@ export class SpawnController {
             current = this.calculateCurrentPercentage(counts.builder, builders.length);
             newCreep = CreepFactory.generateBuilder(level);
             response = spawner.spawnCreep(newCreep.bodyParts, newCreep.name, newCreep.spawnOptions);
-        } else if (miners.length < counts.miner) {
+        } else if (miners.length < counts.miner && level > 1) {
             // Check Builders
             current = this.calculateCurrentPercentage(counts.miner, builders.length);
             newCreep = CreepFactory.generateMiner(level);
