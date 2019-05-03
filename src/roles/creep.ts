@@ -33,7 +33,7 @@ export class CreepController {
             miningZone = (currentMiningTarget != null) ? currentMiningTarget : this.getClosestSource();
         }
 
-        if (this.creep.pos.inRangeTo(miningZone.pos, 1)) {
+        if (this.creep.pos.isNearTo(miningZone.pos)) {
             this.creep.harvest(miningZone);
         } else {
             this.creep.moveTo(miningZone, {visualizePathStyle: {stroke: "#ffaa00"}});
@@ -67,8 +67,13 @@ export class CreepController {
         }
 
         // Move to and take energy from any storage container
-        if (this.creep.pos.inRangeTo(destinationStructure.pos, 1)) {
-            this.creep.withdraw(destinationStructure, RESOURCE_ENERGY);
+        if (this.creep.pos.isNearTo(destinationStructure.pos)) {
+            const success = this.creep.withdraw(destinationStructure, RESOURCE_ENERGY);
+            if (success !== OK) {
+                // Clear memory and try another
+                this.creep.memory.storageTarget = null;
+                return false;
+            }
         } else {
             this.creep.moveTo(destinationStructure, {visualizePathStyle: {stroke: "#ffffff"}});
         }
@@ -85,7 +90,9 @@ export class CreepController {
 
         // Move to and store energy in any storage container
         if (this.creep.transfer(storageStructures[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-            this.creep.moveTo(storageStructures[0], {visualizePathStyle: {stroke: "#ffffff"}});
+            const success = this.creep.moveTo(storageStructures[0], {visualizePathStyle: {stroke: "#ffffff"}});
+
+            return success === OK;
         }
         return true;
     }

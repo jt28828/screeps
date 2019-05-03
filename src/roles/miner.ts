@@ -12,59 +12,36 @@ export class MinerController extends CreepController implements ICreepRole {
     }
 
     public startWork(): void {
-
         if (this.creep.memory.isDepositing && this.creep.carry.energy === 0) {
-            this.startHarvesting(this.creep);
+            this.startHarvesting();
         }
 
         if (this.creep.memory.isMining && this.creep.carry.energy === this.creep.carryCapacity) {
-            this.startDepositing(this.creep);
+            this.startDepositing();
         }
 
         if (this.creep.memory.isDepositing) {
-            this.depositEnergyOrTravel(this.creep, this.roomState);
+            this.depositEnergyInStorage();
         } else {
             if (!this.creep.memory.isMining) {
-                this.startHarvesting(this.creep);
+                this.startHarvesting();
             }
             this.harvestOrTravel();
         }
     }
 
     /** Start collecting energy to use for upgrading */
-    private startHarvesting(creep: IMinerCreep) {
-        creep.memory.isMining = true;
-        creep.memory.isDepositing = false;
-        creep.say("⛏️ harvest");
+    private startHarvesting() {
+        this.creep.memory.isMining = true;
+        this.creep.memory.isDepositing = false;
+        this.creep.say("⛏️ harvest");
     }
 
     /** Start using collected energy to upgrade structures */
-    private startDepositing(creep: IMinerCreep) {
-        creep.memory.isDepositing = true;
-        creep.memory.isMining = false;
+    private startDepositing() {
+        this.creep.memory.isDepositing = true;
+        this.creep.memory.isMining = false;
         this.stopHarvesting();
-        creep.say("🔋 Storing energy");
-    }
-
-    private depositEnergyOrTravel(creep: IMinerCreep, roomState: ICurrentRoomState): void {
-        // Attempt to store the energy in long term storage
-        const success = this.depositEnergyInStorage();
-
-        if (success) {
-            // stored energy ok
-            return;
-        }
-
-        // No storage. Try a tower
-        const towers = roomState.myStructures.filter((structure) => {
-            return structure.structureType === STRUCTURE_TOWER &&
-                structure.energy < structure.energyCapacity;
-        });
-
-        if (towers.length > 0) {
-            if (creep.transfer(towers[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                creep.moveTo(towers[0], {visualizePathStyle: {stroke: "#ffffff"}});
-            }
-        }
+        this.creep.say("🔋 Storing energy");
     }
 }
