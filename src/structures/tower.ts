@@ -21,10 +21,10 @@ export class TowerController {
 
         if (tower.energy / tower.energyCapacity >= 0.5) {
             // Only heal if the tower has more than half its energy capacity in storage
-            if (roomState.damagedAllies != null && roomState.damagedAllies) {
+            if (roomState.damagedAllies != null && roomState.damagedAllies.length > 1) {
                 // Heal Creeps
                 this.healCreep(tower, roomState.damagedAllies);
-            } else if (roomState.damagedStructures != null && roomState.damagedStructures) {
+            } else if (roomState.damagedStructures != null && roomState.damagedStructures.length > 1) {
                 // Heal Structures
                 this.healStructure(tower, roomState.damagedStructures);
             }
