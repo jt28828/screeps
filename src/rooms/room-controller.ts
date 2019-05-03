@@ -26,15 +26,15 @@ export class RoomController {
         const slaves = room.find(FIND_MY_CREEPS) as IMyCreep[];
         const structures = room.find(FIND_STRUCTURES);
         const myStructures = room.find(FIND_MY_STRUCTURES);
-        const enemies = room.find(FIND_HOSTILE_CREEPS);
+        const enemies = room.find(FIND_HOSTILE_CREEPS).sort((a, b) => a.hits - b.hits);
         const fillableStructures = myStructures.filter((structure) =>
             structure.structureType === STRUCTURE_EXTENSION ||
             structure.structureType === STRUCTURE_SPAWN ||
             structure.structureType === STRUCTURE_TOWER &&
             structure.energy < structure.energyCapacity);
 
-        const damagedAllies = slaves.filter((x) => x.hits < x.hitsMax);
-        const damagedStructures = structures.filter((x) => x.hits < x.hitsMax);
+        const damagedAllies = slaves.filter((x) => x.hits < x.hitsMax).sort((a, b) => a.hits - b.hits);
+        const damagedStructures = structures.filter((x) => x.hits < x.hitsMax).sort((a, b) => a.hits - b.hits);
 
         // Calculate room level by the number of extensions and controller level
         const roomLevel = this.calculateRoomLevel(room, myStructures);

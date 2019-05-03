@@ -49,10 +49,10 @@ export class UpgraderController extends CreepController implements ICreepRole {
 
     /** Start using collected energy to upgrade structures */
     private startUpgrading() {
+        this.wipeTaskMemory();
         this.creep.memory.isUpgrading = true;
         this.creep.memory.isCollecting = false;
         this.creep.memory.isMining = false;
-        this.stopHarvesting();
         this.creep.say("upgrading");
     }
 

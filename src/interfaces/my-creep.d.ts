@@ -18,4 +18,6 @@ export interface IMyCreepMemory extends CreepMemory {
     isCollecting?: boolean | null;
     /** Whether or not the creep is currently collecting energy from a source */
     isMining?: boolean;
+    /** How long this creep has been stuck in movement. Allows re-pathing if stuck */
+    stuckCounter: number;
 }

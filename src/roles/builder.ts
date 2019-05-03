@@ -45,17 +45,20 @@ export class BuilderController extends CreepController implements ICreepRole {
         }
     }
 
+    protected wipeTaskMemory() {
+        super.wipeTaskMemory();
+        this.creep.memory.isBuilding = false;
+    }
+
     /** Start collecting energy to use for building */
     private startHarvesting() {
-        this.creep.memory.isBuilding = false;
-        this.creep.memory.isMining = false;
-        this.creep.memory.isCollecting = false;
-        this.creep.say("🔋 harvest");
+        this.wipeTaskMemory();
+        this.creep.say("🎒 harvest");
     }
 
     /** Start using collected energy to build structures */
     private startBuilding() {
-        this.stopHarvesting();
+        this.wipeTaskMemory();
         this.creep.memory.isBuilding = true;
         this.creep.memory.isMining = false;
         this.creep.memory.isCollecting = false;
@@ -85,16 +88,22 @@ export class BuilderController extends CreepController implements ICreepRole {
 
     /** Attempts to repair if within range or moves closer if not */
     private repairOrTravel(): boolean {
-        const repairSites = this.roomState.structures.filter((strct) => strct.hits < strct.hitsMax);
+        const priorityFlag = Game.flags.priorityRepair;
+        let selectedSite: Structure;
+        if (priorityFlag != null) {
+            // Repair Priority building first
+            selectedSite = priorityFlag.pos.findClosestByRange(this.roomState.damagedStructures) as Structure;
+        } else {
+            // Repair the closest building instead
+            selectedSite = this.creep.pos.findClosestByRange(this.roomState.damagedStructures) as Structure;
+        }
 
-        if (repairSites.length) {
-            const closestSite = this.creep.pos.findClosestByRange(repairSites) as Structure;
-
-            if (this.creep.pos.isNearTo(closestSite)) {
-                const success = this.creep.repair(closestSite);
+        if (selectedSite != null) {
+            if (this.creep.pos.isNearTo(selectedSite)) {
+                const success = this.creep.repair(selectedSite);
                 return success === OK;
             } else {
-                this.creep.moveTo(closestSite, {visualizePathStyle: {stroke: "#FFCC00"}});
+                this.creep.moveTo(selectedSite, {visualizePathStyle: {stroke: "#FFCC00"}});
             }
         } else {
             return false;

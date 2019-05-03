@@ -39,9 +39,9 @@ export class MinerController extends CreepController implements ICreepRole {
 
     /** Start using collected energy to upgrade structures */
     private startDepositing() {
+        this.wipeTaskMemory();
         this.creep.memory.isDepositing = true;
         this.creep.memory.isMining = false;
-        this.stopHarvesting();
-        this.creep.say("🔋 Storing energy");
+        this.creep.say("📦 Storing energy");
     }
 }

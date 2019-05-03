@@ -20,12 +20,17 @@ export class CreepController {
 
     /** Attempts to harvest energy if within range or moves closer if not */
     protected harvestOrTravel(allowLongrange: boolean = false) {
-        let miningZone: Source;
+        let miningZone: Source | null;
         if (this.creep.memory.miningTarget == null) {
             if (!allowLongrange) {
                 miningZone = this.getClosestSource();
             } else {
                 miningZone = this.getRandomSource();
+            }
+            if (miningZone == null) {
+                // There are no sources in this room
+                console.log("Attempted to mine in a room with no sources");
+                return;
             }
             this.creep.memory.miningTarget = miningZone.id;
         } else {
@@ -33,16 +38,17 @@ export class CreepController {
             miningZone = (currentMiningTarget != null) ? currentMiningTarget : this.getClosestSource();
         }
 
+        if (miningZone == null) {
+            // There are no sources in this room
+            console.log("Attempted to mine in a room with no sources");
+            return;
+        }
+
         if (this.creep.pos.isNearTo(miningZone.pos)) {
             this.creep.harvest(miningZone);
         } else {
-            this.creep.moveTo(miningZone, {visualizePathStyle: {stroke: "#ffaa00"}});
+            this.moveCreepToPos(miningZone.pos);
         }
-    }
-
-    /** Removes the current mining target from the creep so it can do something else */
-    protected stopHarvesting() {
-        this.creep.memory.miningTarget = null;
     }
 
     /** Attempts to take energy from either containers or storage */
@@ -71,11 +77,11 @@ export class CreepController {
             const success = this.creep.withdraw(destinationStructure, RESOURCE_ENERGY);
             if (success !== OK) {
                 // Clear memory and try another
-                this.creep.memory.storageTarget = null;
+                this.wipeTaskMemory();
                 return false;
             }
         } else {
-            this.creep.moveTo(destinationStructure, {visualizePathStyle: {stroke: "#ffffff"}});
+            this.moveCreepToPos(destinationStructure.pos);
         }
         return true;
     }
@@ -88,13 +94,49 @@ export class CreepController {
             return false;
         }
 
-        // Move to and store energy in any storage container
-        if (this.creep.transfer(storageStructures[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-            const success = this.creep.moveTo(storageStructures[0], {visualizePathStyle: {stroke: "#ffffff"}});
+        // Get the closest structure
+        const closestStorage = this.creep.pos.findClosestByPath(storageStructures);
 
-            return success === OK;
+        if (closestStorage == null) {
+            return false;
         }
-        return true;
+
+        // Move to and store energy in any storage container
+        let success: ScreepsReturnCode;
+        if (this.creep.pos.isNearTo(closestStorage)) {
+            success = this.creep.transfer(closestStorage, RESOURCE_ENERGY);
+        } else {
+            success = this.moveCreepToPos(closestStorage.pos);
+        }
+
+        return success === OK;
+    }
+
+    /** Wipes the memory of the current creep's task */
+    protected wipeTaskMemory() {
+        this.creep.memory.storageTarget = null;
+        this.creep.memory.miningTarget = null;
+        this.creep.memory.isCollecting = false;
+        this.creep.memory.isMining = false;
+    }
+
+    /** Moves a creep to the given position and handles stuck detection if required */
+    protected moveCreepToPos(position: RoomPosition): ScreepsReturnCode {
+        const success = this.creep.moveTo(position, {
+            visualizePathStyle: {stroke: "#ffaa00"},
+            reusePath: 10,
+            ignoreCreeps: false
+        });
+
+        if (success !== OK) {
+            // Creep got stuck this turn. Mark it down and if it's been stuck for at least 2 turns then force re-path
+            if (++this.creep.memory.stuckCounter >= 2) {
+                this.creep.say("I'm Stuck");
+                this.creep.memory.stuckCounter = 0;
+                return this.creep.moveTo(position, {reusePath: 0, ignoreCreeps: false});
+            }
+        }
+        return OK;
     }
 
     private getRandomSource(): Source {
@@ -103,7 +145,7 @@ export class CreepController {
         return zones[index];
     }
 
-    private getClosestSource(): Source {
-        return this.creep.room.find(FIND_SOURCES)[0];
+    private getClosestSource(): Source | null {
+        return this.creep.pos.findClosestByPath(this.creep.room.find(FIND_SOURCES));
     }
 }

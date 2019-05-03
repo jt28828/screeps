@@ -34,19 +34,19 @@ export class TowerController {
 
     /** Attacks the weakest enemy. Should allow multiple towers to "Gang up" on a single creep */
     private static attackEnemy(tower: StructureTower, enemies: Creep[]) {
-        const weakestEnemy = enemies.sort((a, b) => a.hits - b.hits)[0];
+        const weakestEnemy = enemies[0];
         tower.attack(weakestEnemy);
     }
 
     /** Heals the most damaged structure. Should allow multiple towers to team up on repairs */
     private static healStructure(tower: StructureTower, structures: Structure[]) {
-        const mostDamaged = structures.sort((a, b) => a.hits - b.hits)[0];
+        const mostDamaged = structures[0];
         tower.repair(mostDamaged);
     }
 
     /** Heals the most damaged creep. Should allow multiple towers to team up on healing */
     private static healCreep(tower: StructureTower, damagedCreeps: Creep[]) {
-        const mostInjured = damagedCreeps.sort((a, b) => a.hits - b.hits)[0];
+        const mostInjured = damagedCreeps[0];
         tower.heal(mostInjured);
     }
 }

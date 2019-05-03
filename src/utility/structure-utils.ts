@@ -29,7 +29,7 @@ export class StructureUtils {
 
         for (let i = 0; i < structures.length; i++) {
             // Check for containers
-            if (structures[i].structureType === STRUCTURE_CONTAINER || structures[i].structureType === STRUCTURE_STORAGE &&
+            if (structures[i].structureType === STRUCTURE_CONTAINER &&
                 (structures[i] as StructureContainer).store.energy < (structures[i] as StructureContainer).storeCapacity) {
                 // Found a non-full container or storage
                 containersAndStorage.push(structures[i]);

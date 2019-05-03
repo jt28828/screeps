@@ -42,6 +42,7 @@ export class HarvesterController extends CreepController implements ICreepRole {
 
     /** Called when the current creep needs to switch their action to harvesting */
     private switchToHarvesting() {
+        this.wipeTaskMemory();
         const success = this.retrieveEnergyFromStorage();
         if (success) {
             // Started retrieving from storage. Save collection state
@@ -55,6 +56,7 @@ export class HarvesterController extends CreepController implements ICreepRole {
 
     /** Called when the current creep needs to switch their action to depositing their energy */
     private switchToDepositing() {
+        this.wipeTaskMemory();
         this.startDepositing();
         this.depositEnergyOrTravel();
     }
@@ -82,10 +84,10 @@ export class HarvesterController extends CreepController implements ICreepRole {
 
     /** Take collected energy to spawns, extensions or towers */
     private startDepositing() {
+        this.wipeTaskMemory();
         this.creep.memory.isDepositing = true;
         this.creep.memory.isMining = false;
         this.creep.memory.isCollecting = false;
-        this.stopHarvesting();
         this.creep.say("🚚 deposit");
     }
 
