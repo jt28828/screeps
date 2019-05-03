@@ -60,13 +60,13 @@ export class CreepFactory {
      * Requires 250 Energy
      */
     private static generateLevel1Harvester(): INewCreep {
-        const memory: IMyCreepMemory = { role: "harvester", level: 1 };
+        const memory: IMyCreepMemory = {role: "harvester", level: 1};
         const name = `Harvester${Date.now()}`;
         const bodyParts = [WORK, MOVE, CARRY, CARRY];
         return {
             bodyParts,
             name,
-            spawnOptions: { memory },
+            spawnOptions: {memory},
         };
     }
 
@@ -75,13 +75,13 @@ export class CreepFactory {
      * Requires 400 Energy (1 Spawn + 2 Extensions)
      */
     private static generateLevel2Harvester(): INewCreep {
-        const memory: IMyCreepMemory = { role: "harvester", level: 2 };
+        const memory: IMyCreepMemory = {role: "harvester", level: 2};
         const name = `HarvesterV2${Date.now()}`;
         const bodyParts = [WORK, WORK, MOVE, MOVE, CARRY, CARRY];
         return {
             bodyParts,
             name,
-            spawnOptions: { memory },
+            spawnOptions: {memory},
         };
     }
 
@@ -90,13 +90,13 @@ export class CreepFactory {
      * Requires 500 Energy (1 Spawn + 4 Extensions)
      */
     private static generateLevel3Harvester(): INewCreep {
-        const memory: IMyCreepMemory = { role: "harvester", level: 3 };
+        const memory: IMyCreepMemory = {role: "harvester", level: 3};
         const name = `HarvesterV3${Date.now()}`;
         const bodyParts = [WORK, WORK, MOVE, MOVE, CARRY, CARRY, CARRY];
         return {
             bodyParts,
             name,
-            spawnOptions: { memory },
+            spawnOptions: {memory},
         };
     }
 
@@ -105,13 +105,13 @@ export class CreepFactory {
      * Requires 250 Energy
      */
     private static generateLevel1Upgrader(): INewCreep {
-        const memory: IMyCreepMemory = { role: "upgrader", level: 1 };
+        const memory: IMyCreepMemory = {role: "upgrader", level: 1};
         const name = `Upgrader${Date.now()}`;
         const bodyParts = [WORK, MOVE, CARRY, CARRY];
         return {
             bodyParts,
             name,
-            spawnOptions: { memory },
+            spawnOptions: {memory},
         };
     }
 
@@ -120,13 +120,13 @@ export class CreepFactory {
      * Requires 400 Energy (1 Spawn + 2 Extensions)
      */
     private static generateLevel2Upgrader(): INewCreep {
-        const memory: IMyCreepMemory = { role: "upgrader", level: 2 };
+        const memory: IMyCreepMemory = {role: "upgrader", level: 2};
         const name = `UpgraderV2${Date.now()}`;
         const bodyParts = [WORK, WORK, MOVE, MOVE, CARRY, CARRY];
         return {
             bodyParts,
             name,
-            spawnOptions: { memory },
+            spawnOptions: {memory},
         };
     }
 
@@ -135,13 +135,13 @@ export class CreepFactory {
      * Requires 500 Energy (1 Spawn + 4 Extensions)
      */
     private static generateLevel3Upgrader(): INewCreep {
-        const memory: IMyCreepMemory = { role: "upgrader", level: 3 };
+        const memory: IMyCreepMemory = {role: "upgrader", level: 3};
         const name = `UpgraderV3${Date.now()}`;
         const bodyParts = [WORK, WORK, MOVE, MOVE, CARRY, CARRY, CARRY];
         return {
             bodyParts,
             name,
-            spawnOptions: { memory },
+            spawnOptions: {memory},
         };
     }
 
@@ -150,13 +150,13 @@ export class CreepFactory {
      * Requires 250 Energy
      */
     private static generateLevel1Builder(): INewCreep {
-        const memory: IMyCreepMemory = { role: "builder", level: 1 };
+        const memory: IMyCreepMemory = {role: "builder", level: 1};
         const name = `Builder${Date.now()}`;
         const bodyParts = [WORK, MOVE, CARRY, CARRY];
         return {
             bodyParts,
             name,
-            spawnOptions: { memory },
+            spawnOptions: {memory},
         };
     }
 
@@ -165,13 +165,13 @@ export class CreepFactory {
      * Requires 400 Energy (1 Spawn + 2 Extensions)
      */
     private static generateLevel2Builder(): INewCreep {
-        const memory: IMyCreepMemory = { role: "builder", level: 2 };
+        const memory: IMyCreepMemory = {role: "builder", level: 2};
         const name = `BuilderV2${Date.now()}`;
         const bodyParts = [WORK, WORK, MOVE, MOVE, CARRY, CARRY];
         return {
             bodyParts,
             name,
-            spawnOptions: { memory },
+            spawnOptions: {memory},
         };
     }
 
@@ -180,13 +180,13 @@ export class CreepFactory {
      * Requires 500 Energy (1 Spawn + 4 Extensions)
      */
     private static generateLevel3Builder(): INewCreep {
-        const memory: IMyCreepMemory = { role: "builder", level: 3 };
+        const memory: IMyCreepMemory = {role: "builder", level: 3};
         const name = `BuilderV3${Date.now()}`;
         const bodyParts = [WORK, WORK, MOVE, CARRY, CARRY, CARRY, CARRY];
         return {
             bodyParts,
             name,
-            spawnOptions: { memory },
+            spawnOptions: {memory},
         };
     }
 
@@ -195,13 +195,13 @@ export class CreepFactory {
      * Requires 400 Energy (1 Spawn + 2 Extensions)
      */
     private static generateLevel2Miner(): INewCreep {
-        const memory: IMyCreepMemory = { role: "miner", level: 2 };
+        const memory: IMyCreepMemory = {role: "miner", level: 2};
         const name = `MinerV2${Date.now()}`;
         const bodyParts = [WORK, WORK, MOVE, MOVE, CARRY, CARRY];
         return {
             bodyParts,
             name,
-            spawnOptions: { memory },
+            spawnOptions: {memory},
         };
     }
 
@@ -210,13 +210,13 @@ export class CreepFactory {
      * Requires 500 Energy (1 Spawn + 4 Extensions)
      */
     private static generateLevel3Miner(): INewCreep {
-        const memory: IMyCreepMemory = { role: "miner", level: 3 };
+        const memory: IMyCreepMemory = {role: "miner", level: 3};
         const name = `MinerV3${Date.now()}`;
         const bodyParts = [WORK, WORK, WORK, MOVE, CARRY, CARRY, CARRY];
         return {
             bodyParts,
             name,
-            spawnOptions: { memory },
+            spawnOptions: {memory},
         };
     }
 }

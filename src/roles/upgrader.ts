@@ -1,43 +1,46 @@
 import { IUpgraderCreep } from "../interfaces/upgrader-creep";
 import { CreepController } from "./creep";
+import { ICurrentRoomState } from "../interfaces/room";
+import { ICreepRole } from "./creep-role";
 
-export class UpgraderController extends CreepController {
-    public static work(creep: IUpgraderCreep, roomStructures: Structure[]) {
+export class UpgraderController extends CreepController implements ICreepRole {
+    protected creep: IUpgraderCreep;
 
-        if (creep.memory.isUpgrading && creep.carry.energy === 0) {
-            this.startHarvesting(creep);
+    constructor(creep: IUpgraderCreep, roomState: ICurrentRoomState) {
+        super(creep, roomState);
+        this.creep = creep;
+    }
+
+    public startWork() {
+
+        if (this.creep.memory.isUpgrading && this.creep.carry.energy === 0) {
+            this.startHarvesting(this.creep);
         }
 
-        if (!creep.memory.isUpgrading && creep.carry.energy === creep.carryCapacity) {
-            this.startUpgrading(creep);
+        if (!this.creep.memory.isUpgrading && this.creep.carry.energy === this.creep.carryCapacity) {
+            this.startUpgrading(this.creep);
         }
 
-        if (creep.memory.isUpgrading) {
-            this.upgradeOrTravel(creep);
+        if (this.creep.memory.isUpgrading) {
+            this.upgradeOrTravel(this.creep);
         } else {
-            if (!creep.memory.isMining) {
+            if (!this.creep.memory.isMining) {
                 // Creep isn't mining yet
-                const attempt = this.retrieveEnergyFromStorage(creep, roomStructures);
-                if (attempt !== ERR_NOT_FOUND && attempt !== ERR_NOT_ENOUGH_ENERGY) {
+                const success = this.retrieveEnergyFromStorage();
+                if (success) {
                     // Container was found and has energy in it. Collect from it
-                    creep.memory.isCollecting = true;
+                    this.creep.memory.isCollecting = true;
                     return;
                 }
             }
-            creep.memory.isCollecting = false;
-            creep.memory.isMining = true;
-            this.harvestOrTravel(creep, true);
+            this.creep.memory.isCollecting = false;
+            this.creep.memory.isMining = true;
+            this.harvestOrTravel(true);
         }
     }
 
-    /** Do Something here at some stage */
-    public static retreat() {
-        // TODO Implement
-        throw new Error("Not Implemented");
-    }
-
     /** Start collecting energy to use for upgrading */
-    private static startHarvesting(creep: IUpgraderCreep) {
+    private startHarvesting(creep: IUpgraderCreep) {
         creep.memory.isUpgrading = false;
         creep.memory.isCollecting = false;
         creep.memory.isMining = false;
@@ -45,20 +48,34 @@ export class UpgraderController extends CreepController {
     }
 
     /** Start using collected energy to upgrade structures */
-    private static startUpgrading(creep: IUpgraderCreep) {
+    private startUpgrading(creep: IUpgraderCreep) {
         creep.memory.isUpgrading = true;
         creep.memory.isCollecting = false;
         creep.memory.isMining = false;
-        this.stopHarvesting(creep);
+        this.stopHarvesting();
         creep.say("upgrading");
     }
 
-    private static upgradeOrTravel(creep: IUpgraderCreep) {
+    private upgradeOrTravel(creep: IUpgraderCreep) {
         const structureController = creep.room.controller;
         if (structureController != null) {
+            // Check if room signature written first. Comment out after all rooms are claimed for a miniscule speed boost
+            // if (structureController.sign != null && structureController.sign.text !== mySignature) {
+            //     // Need to claim room first
+            //     this.signControllerOrTravel(creep, structureController);
+            // }
+
             if (creep.upgradeController(structureController) === ERR_NOT_IN_RANGE) {
-                creep.moveTo(structureController, { visualizePathStyle: { stroke: "#ffffff" } });
+                creep.moveTo(structureController, {visualizePathStyle: {stroke: "#ffffff"}});
             }
         }
     }
+
+    // private static signControllerOrTravel(creep: IUpgraderCreep, controller: StructureController) {
+    //     if (controller != null) {
+    //         if (creep.signController(controller, mySignature) === ERR_NOT_IN_RANGE) {
+    //             creep.moveTo(controller, { visualizePathStyle: { stroke: "#ffffff" } });
+    //         }
+    //     }
+    // }
 }

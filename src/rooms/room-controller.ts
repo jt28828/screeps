@@ -7,6 +7,8 @@ import { UpgraderController } from "../roles/upgrader";
 import { SpawnController } from "../structures/spawn";
 import { TowerController } from "../structures/tower";
 import { isBuilder, isHarvester, isMiner, isUpgrader } from "../utility/creep-utils";
+import { ICreepRole } from "../roles/creep-role";
+import { IHarvesterCreep } from "../interfaces/harvester-creep";
 
 export class RoomController {
     /**
@@ -25,6 +27,12 @@ export class RoomController {
         const structures = room.find(FIND_STRUCTURES);
         const myStructures = room.find(FIND_MY_STRUCTURES);
         const enemies = room.find(FIND_HOSTILE_CREEPS);
+        const fillableStructures = myStructures.filter((structure) =>
+            structure.structureType === STRUCTURE_EXTENSION ||
+            structure.structureType === STRUCTURE_SPAWN ||
+            structure.structureType === STRUCTURE_TOWER &&
+            structure.energy < structure.energyCapacity);
+
         const damagedAllies = slaves.filter((x) => x.hits < x.hitsMax);
         const damagedStructures = structures.filter((x) => x.hits < x.hitsMax);
 
@@ -36,6 +44,7 @@ export class RoomController {
             damagedStructures,
             enemies,
             myStructures,
+            fillableStructures,
             roomLevel,
             slaves,
             structures,
@@ -60,24 +69,25 @@ export class RoomController {
 
     /** Commands all the creeps in the room to perform their actions */
     private static commandCreeps(state: ICurrentRoomState): void {
-        const allyCreeps = state.slaves;
 
-        const creepCount = allyCreeps.length;
+        const creepCount = state.slaves.length;
+
         for (let i = 0; i < creepCount; i++) {
-            const thisCreep = allyCreeps[i];
-
+            const thisCreep = state.slaves[i];
+            let controller: ICreepRole;
             if (isHarvester(thisCreep)) {
-                HarvesterController.work(thisCreep, state);
+                controller = new HarvesterController(thisCreep, state);
+            } else if (isUpgrader(thisCreep)) {
+                controller = new UpgraderController(thisCreep, state);
+            } else if (isBuilder(thisCreep)) {
+                controller = new BuilderController(thisCreep, state);
+            } else if (isMiner(thisCreep)) {
+                controller = new MinerController(thisCreep, state);
+            } else {
+                console.log("Attempted to control an unsupported creep. Falling back to Harvester");
+                controller = new HarvesterController(thisCreep as IHarvesterCreep, state);
             }
-            if (isUpgrader(thisCreep)) {
-                UpgraderController.work(thisCreep, state.structures);
-            }
-            if (isBuilder(thisCreep)) {
-                BuilderController.work(thisCreep, state);
-            }
-            if (isMiner(thisCreep)) {
-                MinerController.work(thisCreep, state);
-            }
+            controller.startWork();
         }
     }
 

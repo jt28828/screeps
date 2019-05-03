@@ -5,6 +5,8 @@ export interface ICurrentRoomState {
     slaves: IMyCreep[];
     structures: AnyStructure[];
     myStructures: AnyOwnedStructure[];
+    /** Structures that are not yet full and can be filled with energy */
+    fillableStructures: AnyOwnedStructure[];
     damagedAllies: Creep[];
     damagedStructures: Structure[];
     enemies: Creep[];

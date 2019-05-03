@@ -1,63 +1,102 @@
 import { IMyCreep } from "../interfaces/my-creep";
 import { StructureUtils } from "../utility/structure-utils";
+import { ICurrentRoomState } from "../interfaces/room";
 
 /** Contains functions that are used across all creep types */
 export class CreepController {
+    /** A reference to the creep to control */
+    protected creep: IMyCreep;
+    /** An indicator as to the current state of the room this creep is in */
+    protected roomState: ICurrentRoomState;
+
+    constructor(creep: IMyCreep, roomState: ICurrentRoomState) {
+        this.creep = creep;
+        this.roomState = roomState;
+    }
+
+    protected creepIsFull(): boolean {
+        return this.creep.carry.energy === this.creep.carryCapacity;
+    }
 
     /** Attempts to harvest energy if within range or moves closer if not */
-    protected static harvestOrTravel(creep: IMyCreep, allowLongrange: boolean = false) {
+    protected harvestOrTravel(allowLongrange: boolean = false) {
         let miningZone: Source;
-        if (creep.memory.miningTarget == null) {
+        if (this.creep.memory.miningTarget == null) {
             if (!allowLongrange) {
-                miningZone = this.getClosestSource(creep);
+                miningZone = this.getClosestSource();
             } else {
-                miningZone = this.getRandomSource(creep);
+                miningZone = this.getRandomSource();
             }
-            creep.memory.miningTarget = miningZone.id;
+            this.creep.memory.miningTarget = miningZone.id;
         } else {
-            const currentMiningTarget = Game.getObjectById(creep.memory.miningTarget) as Source;
-            miningZone = (currentMiningTarget != null) ?
-                currentMiningTarget :
-                this.getClosestSource(creep);
+            const currentMiningTarget = Game.getObjectById(this.creep.memory.miningTarget) as Source;
+            miningZone = (currentMiningTarget != null) ? currentMiningTarget : this.getClosestSource();
         }
 
-        if (creep.harvest(miningZone) === ERR_NOT_IN_RANGE) {
-            creep.moveTo(miningZone, { visualizePathStyle: { stroke: "#ffaa00" } });
+        if (this.creep.pos.inRangeTo(miningZone.pos, 1)) {
+            this.creep.harvest(miningZone);
+        } else {
+            this.creep.moveTo(miningZone, {visualizePathStyle: {stroke: "#ffaa00"}});
         }
     }
 
     /** Removes the current mining target from the creep so it can do something else */
-    protected static stopHarvesting(creep: IMyCreep) {
-        creep.memory.miningTarget = undefined;
+    protected stopHarvesting() {
+        this.creep.memory.miningTarget = null;
     }
 
     /** Attempts to take energy from either containers or storage */
-    protected static retrieveEnergyFromStorage(creep: IMyCreep, myStructures: Structure[]): ScreepsReturnCode {
-        const storageStructures = StructureUtils.findNonEmptyStorageStructures(myStructures) as StructureContainer[];
+    protected retrieveEnergyFromStorage(): boolean {
+        let destinationStructure: Structure | null = null;
 
-        if (storageStructures == null) {
-            return ERR_NOT_FOUND;
+        if (this.creep.memory.storageTarget == null) {
+            // Get a new storage target
+            const storageStructures = StructureUtils.findNonEmptyStorageStructures(this.roomState.structures);
+
+            if (storageStructures != null) {
+                this.creep.memory.storageTarget = storageStructures[0].id;
+                destinationStructure = storageStructures[0];
+            }
+        } else {
+            // Find existing target
+            destinationStructure = Game.getObjectById(this.creep.memory.storageTarget) as Structure;
+        }
+
+        if (destinationStructure == null) {
+            return false;
         }
 
         // Move to and take energy from any storage container
-        const response = creep.withdraw(storageStructures[0], RESOURCE_ENERGY);
-        if (response === ERR_NOT_IN_RANGE) {
-            return creep.moveTo(storageStructures[0], { visualizePathStyle: { stroke: "#ffffff" } });
-        } else if (response !== OK) {
-            // Something else went wrong. Return to let caller to know to stop
-            return ERR_NOT_ENOUGH_ENERGY;
+        if (this.creep.pos.inRangeTo(destinationStructure.pos, 1)) {
+            this.creep.withdraw(destinationStructure, RESOURCE_ENERGY);
+        } else {
+            this.creep.moveTo(destinationStructure, {visualizePathStyle: {stroke: "#ffffff"}});
         }
-
-        return OK;
+        return true;
     }
 
-    private static getRandomSource(creep: Creep): Source {
-        const zones = creep.room.find(FIND_SOURCES);
+    /** Attempts to deposit energy in either containers or storage */
+    protected depositEnergyInStorage(): boolean {
+        const storageStructures = StructureUtils.findNonFullStorageStructures(this.roomState.structures);
+
+        if (storageStructures == null) {
+            return false;
+        }
+
+        // Move to and store energy in any storage container
+        if (this.creep.transfer(storageStructures[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+            this.creep.moveTo(storageStructures[0], {visualizePathStyle: {stroke: "#ffffff"}});
+        }
+        return true;
+    }
+
+    private getRandomSource(): Source {
+        const zones = this.creep.room.find(FIND_SOURCES);
         const index = Math.floor(Math.random() * zones.length);
         return zones[index];
     }
 
-    private static getClosestSource(creep: Creep): Source {
-        return creep.room.find(FIND_SOURCES)[0];
+    private getClosestSource(): Source {
+        return this.creep.room.find(FIND_SOURCES)[0];
     }
 }

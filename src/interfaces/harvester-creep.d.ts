@@ -7,5 +7,6 @@ export interface IHarvesterCreep extends IMyCreep {
 
 export interface IMyHarvesterMemory extends IMyCreepMemory {
     isMining: boolean;
+    isCollecting: boolean;
     isDepositing: boolean;
 }
