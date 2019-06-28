@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES6",
-    "module": "commonjs",
+    "module": "esnext",
     "incremental": true,
     "removeComments": true,
     "outDir": "./ts-dist",

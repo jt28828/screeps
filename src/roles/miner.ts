@@ -1,6 +1,6 @@
 import { IMinerCreep } from "../interfaces/miner-creep";
 import { ICurrentRoomState } from "../interfaces/room";
-import { CreepController } from "./creep";
+import { CreepController } from "./base/creep";
 import { ICreepRole } from "./creep-role";
 
 export class MinerController extends CreepController implements ICreepRole {

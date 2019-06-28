@@ -9,6 +9,7 @@ export interface ICurrentRoomState {
     fillableStructures: AnyOwnedStructure[];
     damagedAllies: Creep[];
     damagedStructures: Structure[];
+    constructionSites: ConstructionSite[];
+    roomHasSpawn: boolean;
     enemies: Creep[];
-    roomLevel: number;
 }

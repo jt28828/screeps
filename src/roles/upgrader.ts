@@ -1,5 +1,5 @@
 import { IUpgraderCreep } from "../interfaces/upgrader-creep";
-import { CreepController } from "./creep";
+import { CreepController } from "./base/creep";
 import { ICurrentRoomState } from "../interfaces/room";
 import { ICreepRole } from "./creep-role";
 
@@ -35,7 +35,7 @@ export class UpgraderController extends CreepController implements ICreepRole {
             }
             this.creep.memory.isCollecting = false;
             this.creep.memory.isMining = true;
-            this.harvestOrTravel(true);
+            this.harvestOrTravel();
         }
     }
 

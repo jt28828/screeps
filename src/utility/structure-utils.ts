@@ -29,10 +29,12 @@ export class StructureUtils {
 
         for (let i = 0; i < structures.length; i++) {
             // Check for containers
-            if (structures[i].structureType === STRUCTURE_CONTAINER &&
-                (structures[i] as StructureContainer).store.energy < (structures[i] as StructureContainer).storeCapacity) {
-                // Found a non-full container or storage
-                containersAndStorage.push(structures[i]);
+            const thisStructure = structures[i];
+            if (thisStructure.structureType === STRUCTURE_CONTAINER || thisStructure.structureType === STRUCTURE_STORAGE) {
+                if ((thisStructure as StructureContainer).store.energy < (thisStructure as StructureContainer).storeCapacity) {
+                    // Found a non-full container or storage
+                    containersAndStorage.push(thisStructure);
+                }
             }
         }
 

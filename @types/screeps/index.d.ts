@@ -1392,8 +1392,6 @@ type LookForAtAreaResultWithPos<T, K extends keyof LookAtTypes = keyof LookAtTyp
 type LookForAtAreaResultArray<T, K extends keyof LookAtTypes = keyof LookAtTypes> = Array<LookForAtAreaResultWithPos<T, K>>;
 
 interface FindTypes {
-    [key: number]: RoomPosition | Creep | Source | Resource | Structure | Flag | ConstructionSite | Mineral | Nuke | Tombstone;
-
     1: RoomPosition; // FIND_EXIT_TOP
     3: RoomPosition; // FIND_EXIT_RIGHT
     5: RoomPosition; // FIND_EXIT_BOTTOM
@@ -1417,6 +1415,8 @@ interface FindTypes {
     116: Mineral; // FIND_MINERALS
     117: Nuke; // FIND_NUKES
     118: Tombstone; // FIND_TOMBSTONES
+
+    [key: number]: RoomPosition | Creep | Source | Resource | Structure | Flag | ConstructionSite | Mineral | Nuke | Tombstone;
 }
 
 interface FindPathOpts {
@@ -1438,6 +1438,46 @@ interface FindPathOpts {
      * new PathFinder is enabled.
      */
     ignoreRoads?: boolean;
+    /**
+     * An array of the room's objects or RoomPosition objects which should be treated as walkable tiles during the search. This option
+     * cannot be used when the new PathFinder is enabled (use costCallback option instead).
+     */
+    ignore?: any[] | RoomPosition[];
+    /**
+     * An array of the room's objects or RoomPosition objects which should be treated as obstacles during the search. This option cannot
+     * be used when the new PathFinder is enabled (use costCallback option instead).
+     */
+    avoid?: any[] | RoomPosition[];
+    /**
+     * The maximum limit of possible pathfinding operations. You can limit CPU time used for the search based on ratio 1 op ~ 0.001 CPU.
+     * The default value is 2000.
+     */
+    maxOps?: number;
+    /**
+     * Weight to apply to the heuristic in the A* formula F = G + weight * H. Use this option only if you understand the underlying
+     * A* algorithm mechanics! The default value is 1.2.
+     */
+    heuristicWeight?: number;
+    /**
+     * If true, the result path will be serialized using Room.serializePath. The default is false.
+     */
+    serialize?: boolean;
+    /**
+     * The maximum allowed rooms to search. The default (and maximum) is 16. This is only used when the new PathFinder is enabled.
+     */
+    maxRooms?: number;
+    /**
+     * Path to within (range) tiles of target tile. The default is to path to the tile that the target is on (0).
+     */
+    range?: number;
+    /**
+     * Cost for walking on plain positions. The default is 1.
+     */
+    plainCost?: number;
+    /**
+     * Cost for walking on swamp positions. The default is 5.
+     */
+    swampCost?: number;
 
     /**
      * You can use this callback to modify a CostMatrix for any room during the search. The callback accepts two arguments, roomName
@@ -1449,55 +1489,6 @@ interface FindPathOpts {
      * @returns The new CostMatrix to use
      */
     costCallback?(roomName: string, costMatrix: CostMatrix): boolean | CostMatrix;
-
-    /**
-     * An array of the room's objects or RoomPosition objects which should be treated as walkable tiles during the search. This option
-     * cannot be used when the new PathFinder is enabled (use costCallback option instead).
-     */
-    ignore?: any[] | RoomPosition[];
-
-    /**
-     * An array of the room's objects or RoomPosition objects which should be treated as obstacles during the search. This option cannot
-     * be used when the new PathFinder is enabled (use costCallback option instead).
-     */
-    avoid?: any[] | RoomPosition[];
-
-    /**
-     * The maximum limit of possible pathfinding operations. You can limit CPU time used for the search based on ratio 1 op ~ 0.001 CPU.
-     * The default value is 2000.
-     */
-    maxOps?: number;
-
-    /**
-     * Weight to apply to the heuristic in the A* formula F = G + weight * H. Use this option only if you understand the underlying
-     * A* algorithm mechanics! The default value is 1.2.
-     */
-    heuristicWeight?: number;
-
-    /**
-     * If true, the result path will be serialized using Room.serializePath. The default is false.
-     */
-    serialize?: boolean;
-
-    /**
-     * The maximum allowed rooms to search. The default (and maximum) is 16. This is only used when the new PathFinder is enabled.
-     */
-    maxRooms?: number;
-
-    /**
-     * Path to within (range) tiles of target tile. The default is to path to the tile that the target is on (0).
-     */
-    range?: number;
-
-    /**
-     * Cost for walking on plain positions. The default is 1.
-     */
-    plainCost?: number;
-
-    /**
-     * Cost for walking on swamp positions. The default is 5.
-     */
-    swampCost?: number;
 }
 
 interface MoveToOpts extends FindPathOpts {
@@ -2026,19 +2017,6 @@ interface EventItem<T extends EventConstant = EventConstant> {
 }
 
 interface EventData {
-    [key: number]: null | {
-        targetId?: string;
-        damage?: number;
-        attackType?: EventAttackType;
-        amount?: number;
-        energySpent?: number;
-        type?: EventDestroyType;
-        healType?: EventHealType;
-        room?: string;
-        x?: number;
-        y?: number;
-    };
-
     1: { // EVENT_ATTACK
         targetId: string;
         damage: number;
@@ -2078,6 +2056,19 @@ interface EventData {
         room: string;
         x: number;
         y: number;
+    };
+
+    [key: number]: null | {
+        targetId?: string;
+        damage?: number;
+        attackType?: EventAttackType;
+        amount?: number;
+        energySpent?: number;
+        type?: EventDestroyType;
+        healType?: EventHealType;
+        room?: string;
+        x?: number;
+        y?: number;
     };
 }
 
@@ -2318,7 +2309,8 @@ interface OrderFilter {
 
 interface MyMemory {
     roomNames: string[];
-    allyUsernames: string[];
+    remoteBuilders: string[];
+    claimerPresent: boolean;
 }
 
 interface Memory {
@@ -2954,15 +2946,15 @@ interface RoomTerrainConstructor extends _Constructor<RoomTerrain> {
 
 declare class RoomVisual {
     /**
+     * The name of the room.
+     */
+    roomName: string;
+
+    /**
      * You can create new RoomVisual object using its constructor.
      * @param roomName The room name. If undefined, visuals will be posted to all rooms simultaneously.
      */
     constructor(roomName?: string);
-
-    /**
-     * The name of the room.
-     */
-    roomName: string;
 
     /**
      * Draw a line.
@@ -3162,7 +3154,7 @@ interface Room {
     /**
      * The Controller structure of this room, if present, otherwise undefined.
      */
-    controller?: StructureController;
+    controller: StructureController;
     /**
      * Total amount of energy available in all spawns and extensions in the room.
      */
@@ -3171,12 +3163,6 @@ interface Room {
      * Total amount of energyCapacity of all spawns and extensions in the room.
      */
     energyCapacityAvailable: number;
-
-    /**
-     * Returns an array of events happened on the previous tick in this room.
-     */
-    getEventLog(raw?: boolean): EventItem[];
-
     /**
      * A shorthand to `Memory.rooms[room.name]`. You can use it for quick access the room’s specific memory data object.
      */
@@ -3201,6 +3187,11 @@ interface Room {
      * A RoomVisual object for this room. You can use this object to draw simple shapes (lines, circles, text labels) in the room.
      */
     visual: RoomVisual;
+
+    /**
+     * Returns an array of events happened on the previous tick in this room.
+     */
+    getEventLog(raw?: boolean): EventItem[];
 
     /**
      * Create new ConstructionSite at the specified location.
@@ -3451,9 +3442,9 @@ interface Room {
 }
 
 interface RoomConstructor extends _Constructor<Room> {
-    new(id: string): Room;
-
     Terrain: RoomTerrainConstructor;
+
+    new(id: string): Room;
 
     /**
      * Serialize a path array into a short string representation, which is suitable to store in memory.

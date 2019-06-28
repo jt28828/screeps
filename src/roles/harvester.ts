@@ -1,7 +1,7 @@
 import { IHarvesterCreep } from "../interfaces/harvester-creep";
 import { IMyCreep } from "../interfaces/my-creep";
 import { ICurrentRoomState } from "../interfaces/room";
-import { CreepController } from "./creep";
+import { CreepController } from "./base/creep";
 import { ICreepRole } from "./creep-role";
 
 /**
@@ -36,7 +36,6 @@ export class HarvesterController extends CreepController implements ICreepRole {
             this.depositEnergyOrTravel();
         } else {
             // Temporary catch all until new function has been properly tested
-            console.log(`A creep is neither harvesting or not harvesting state`);
         }
     }
 
@@ -99,9 +98,15 @@ export class HarvesterController extends CreepController implements ICreepRole {
                 structure.energy < structure.energyCapacity;
         });
 
+        const closestStructure = this.creep.pos.findClosestByPath(energyStructures);
+
+        if (closestStructure == null) {
+            return;
+        }
+
         if (energyStructures.length > 0) {
-            if (this.creep.transfer(energyStructures[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                const didMove = this.creep.moveTo(energyStructures[0], {visualizePathStyle: {stroke: "#ffffff"}});
+            if (this.creep.transfer(closestStructure, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                const didMove = this.creep.moveTo(closestStructure, {visualizePathStyle: {stroke: "#ffffff"}});
                 if (didMove === ERR_NO_PATH) {
                     // Creep is stuck. Hand off energy to creeps around it
                     this.transferEnergy(this.creep);

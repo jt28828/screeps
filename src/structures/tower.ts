@@ -4,6 +4,14 @@ import { ICurrentRoomState } from "../interfaces/room";
  * Contains logic for controlling towers to attack enemies or heal friendlies
  */
 export class TowerController {
+    private tower: StructureTower;
+    private roomState: ICurrentRoomState;
+
+    constructor(tower: StructureTower, roomState: ICurrentRoomState) {
+        this.tower = tower;
+        this.roomState = roomState;
+    }
+
     /**
      * Commands the tower to perform an action depending on the current state of the room
      * Priority is:
@@ -11,42 +19,41 @@ export class TowerController {
      * 2. Heal Creeps
      * 3. Heal Structures
      */
-    public static command(tower: StructureTower, roomState: ICurrentRoomState): void {
-
-        if (roomState.enemies != null && roomState.enemies.length > 0) {
+    public command(): void {
+        if (this.roomState.enemies != null && this.roomState.enemies.length > 0) {
             // Attack enemies
-            this.attackEnemy(tower, roomState.enemies);
+            this.attackEnemy();
             return;
         }
 
-        if (tower.energy / tower.energyCapacity >= 0.5) {
+        if (this.tower.energy / this.tower.energyCapacity >= 0.5) {
             // Only heal if the tower has more than half its energy capacity in storage
-            if (roomState.damagedAllies != null && roomState.damagedAllies.length > 1) {
+            if (this.roomState.damagedAllies != null && this.roomState.damagedAllies.length > 1) {
                 // Heal Creeps
-                this.healCreep(tower, roomState.damagedAllies);
-            } else if (roomState.damagedStructures != null && roomState.damagedStructures.length > 1) {
+                this.healCreep();
+            } else if (this.roomState.damagedStructures != null && this.roomState.damagedStructures.length > 1) {
                 // Heal Structures
-                this.healStructure(tower, roomState.damagedStructures);
+                this.healStructure();
             }
         }
         // No enemies, damage or injuries. Let the tower rest
     }
 
     /** Attacks the weakest enemy. Should allow multiple towers to "Gang up" on a single creep */
-    private static attackEnemy(tower: StructureTower, enemies: Creep[]) {
-        const weakestEnemy = enemies[0];
-        tower.attack(weakestEnemy);
+    private attackEnemy() {
+        const weakestEnemy = this.roomState.enemies[0];
+        this.tower.attack(weakestEnemy);
     }
 
     /** Heals the most damaged structure. Should allow multiple towers to team up on repairs */
-    private static healStructure(tower: StructureTower, structures: Structure[]) {
-        const mostDamaged = structures[0];
-        tower.repair(mostDamaged);
+    private healStructure() {
+        const mostDamaged = this.roomState.damagedStructures[0];
+        this.tower.repair(mostDamaged);
     }
 
     /** Heals the most damaged creep. Should allow multiple towers to team up on healing */
-    private static healCreep(tower: StructureTower, damagedCreeps: Creep[]) {
-        const mostInjured = damagedCreeps[0];
-        tower.heal(mostInjured);
+    private healCreep() {
+        const mostInjured = this.roomState.damagedAllies[0];
+        this.tower.heal(mostInjured);
     }
 }

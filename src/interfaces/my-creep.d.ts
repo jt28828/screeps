@@ -8,8 +8,7 @@ export interface IMyCreep extends Creep {
 
 export interface IMyCreepMemory extends CreepMemory {
     /** The Role this creep has */
-    role: MyCreepRoles;
-    level: number;
+    role: MyCreepRoles | string;
     /** If this creep is collecting or taking to a deposit. The deposit they should collect or store in from until full */
     storageTarget?: string | null;
     /** If this creep is mining. The source they should mine from until full */

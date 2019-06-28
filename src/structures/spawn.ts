@@ -1,9 +1,9 @@
-import { level1CreepCounts, level2CreepCounts, level3CreepCounts } from "../constants/creep-counts";
 import { CreepFactory } from "../factories/creep-factory";
 import { ICreepCounts } from "../interfaces/creep-counts";
 import { IMyCreep } from "../interfaces/my-creep";
-import { INewCreep } from "../interfaces/new-creep";
 import { ICurrentRoomState } from "../interfaces/room";
+import { MyCreepRoles } from "../types/roles";
+import { maxCreepCounts } from "../constants/creep-counts";
 
 /** Contains logic to control room spawns */
 export class SpawnController {
@@ -17,73 +17,50 @@ export class SpawnController {
      * 3. Builder
      * 4. Miner
      */
-    public static spawn(spawner: StructureSpawn, roomState: ICurrentRoomState) {
-        switch (roomState.roomLevel) {
-            case 1:
-                this.spawnCreeps(spawner, roomState.slaves, level1CreepCounts, 1);
-                break;
-            case 2:
-                this.spawnCreeps(spawner, roomState.slaves, level2CreepCounts, 2);
-                break;
-            case 3:
-                this.spawnCreeps(spawner, roomState.slaves, level3CreepCounts, 3);
-                break;
-            default:
-                this.spawnCreeps(spawner, roomState.slaves, level1CreepCounts, 1);
-                break;
-        }
+    public static spawn(spawner: StructureSpawn, roomState: ICurrentRoomState, room: Room) {
+        this.spawnCreeps(spawner, roomState.slaves, maxCreepCounts, room);
     }
 
     /** Spawns a creep if required */
-    private static spawnCreeps(spawner: StructureSpawn, creeps: IMyCreep[], counts: ICreepCounts, level: number) {
-        let newCreep: INewCreep | null = null;
-        let response: ScreepsReturnCode = 0;
-        // The percentage of difference between the current amount and the required
-        let current: number = 1;
-        const upgraders = creeps.filter((x) => x.memory.role === "upgrader");
-        const harvesters = creeps.filter((x) => x.memory.role === "harvester");
-        const builders = creeps.filter((x) => x.memory.role === "builder");
-        const miners = creeps.filter((x) => x.memory.role === "miner");
+    private static spawnCreeps(spawner: StructureSpawn, creeps: IMyCreep[], counts: ICreepCounts, room: Room) {
+        let creepType: MyCreepRoles = MyCreepRoles.escapeCase;
+
+        const upgraders = creeps.filter((x) => x.memory.role === MyCreepRoles.upgrader);
+        const harvesters = creeps.filter((x) => x.memory.role === MyCreepRoles.harvester);
+        const builders = creeps.filter((x) => x.memory.role === MyCreepRoles.builder);
+        const miners = creeps.filter((x) => x.memory.role === MyCreepRoles.miner);
 
         if (harvesters.length < counts.harvester) {
             // Check Harvesters
-            current = this.calculateCurrentPercentage(counts.harvester, harvesters.length);
-            newCreep = CreepFactory.generateHarvester(level);
-            response = spawner.spawnCreep(newCreep.bodyParts, newCreep.name, newCreep.spawnOptions);
+            creepType = MyCreepRoles.harvester;
         } else if (upgraders.length < counts.upgrader) {
             // Check Upgraders
-            current = this.calculateCurrentPercentage(counts.upgrader, upgraders.length);
-            newCreep = CreepFactory.generateUpgrader(level);
-            response = spawner.spawnCreep(newCreep.bodyParts, newCreep.name, newCreep.spawnOptions);
+            creepType = MyCreepRoles.upgrader;
         } else if (builders.length < counts.builder) {
             // Check Builders
-            current = this.calculateCurrentPercentage(counts.builder, builders.length);
-            newCreep = CreepFactory.generateBuilder(level);
-            response = spawner.spawnCreep(newCreep.bodyParts, newCreep.name, newCreep.spawnOptions);
-        } else if (miners.length < counts.miner && level > 1) {
-            // Check Builders
-            current = this.calculateCurrentPercentage(counts.miner, builders.length);
-            newCreep = CreepFactory.generateMiner(level);
-            response = spawner.spawnCreep(newCreep.bodyParts, newCreep.name, newCreep.spawnOptions);
+            creepType = MyCreepRoles.builder;
+        } else if (miners.length < counts.miner) {
+            // Check Miners
+            creepType = MyCreepRoles.miner;
+        } else if (Game.flags.claimMe != null && !Memory.myMemory.claimerPresent) {
+            // Spawn a Claimer only if the flag is present and a claimer doesn't already exist
+            this.spawnClaimer(spawner, room);
         }
 
-        if (newCreep != null) {
-            // A new creep was created. Generate it
-            if (response !== OK) {
-                // Not enough energy to generate a creep of this level. If creeps not at required amount,
-                // Roll back a level and attempt to spawn a weaker creep to keep up with demand
-                if (level > 1 && current < 1) {
-                    this.spawnCreeps(spawner, creeps, counts, --level);
-                }
-            }
+        if (creepType !== MyCreepRoles.escapeCase) {
+            // Create the creep
+            const newCreep = CreepFactory.generateCreep(creepType, room);
+            spawner.spawnCreep(newCreep.bodyParts, newCreep.name, newCreep.spawnOptions);
         }
     }
 
-    /** Calculates the current percentage of creeps currently spawned compared to required */
-    private static calculateCurrentPercentage(target: number, current: number) {
-        if (current === 0 || target === 0) {
-            return 0;
+    /** Spawning claimers is a special case as they must be marked down */
+    private static spawnClaimer(spawner: StructureSpawn, room: Room) {
+        const newClaimer = CreepFactory.generateCreep(MyCreepRoles.claimer, room);
+        const response = spawner.spawnCreep(newClaimer.bodyParts, newClaimer.name, newClaimer.spawnOptions);
+        if (response === OK) {
+            // Succeeded. Save in memory
+            Memory.myMemory.claimerPresent = true;
         }
-        return current / target;
     }
 }

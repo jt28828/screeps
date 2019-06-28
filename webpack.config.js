@@ -3,6 +3,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 
 
 module.exports = {
+  mode: "production",
   entry: './ts-dist/main.js',
   output: {
     pathinfo: true,
