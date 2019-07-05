@@ -18,7 +18,7 @@ function initialiseScript() {
         };
     }
     runOccasionalTasks();
-    console.log(`Script updated: Now running 1.7.0`);
+    console.log(`Script updated: Now running 1.7.1`);
 }
 
 /** The loop function called by the game once every tick. Assigns commands to everything */

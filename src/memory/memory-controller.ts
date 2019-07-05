@@ -17,8 +17,9 @@ export class MemoryController {
         const allCreepNames = Object.keys(Memory.creeps);
         const allCreepsCount = allCreepNames.length;
         for (let i = 0; i < allCreepsCount; i++) {
-            const thisCreepName = Game.creeps[allCreepNames[i]];
-            if (thisCreepName == null) {
+            const thisCreepName = allCreepNames[i];
+            const thisCreep = Game.creeps[thisCreepName];
+            if (thisCreep == null) {
                 delete Memory.creeps[thisCreepName];
                 this.removePossibleBuilder(thisCreepName);
             }
