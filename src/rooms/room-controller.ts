@@ -1,29 +1,50 @@
 import { IMyCreep } from "../interfaces/my-creep";
-import { ICurrentRoomState } from "../interfaces/room";
-import { BuilderController } from "../roles/builder";
-import { HarvesterController } from "../roles/harvester";
-import { MinerController } from "../roles/miner";
-import { UpgraderController } from "../roles/upgrader";
+import { BuilderController } from "../creeps/builder";
+import { HarvesterController } from "../creeps/harvester";
+import { MinerController } from "../creeps/miner";
+import { UpgraderController } from "../creeps/upgrader";
 import { SpawnController } from "../structures/spawn";
 import { TowerController } from "../structures/tower";
 import { isBuilder, isClaimer, isHarvester, isMiner, isRemoteBuilder, isUpgrader } from "../utility/creep-utils";
-import { ICreepRole } from "../roles/creep-role";
+import { ICreepRole } from "../creeps/creep-role";
 import { IHarvesterCreep } from "../interfaces/harvester-creep";
-import { ClaimerController } from "../roles/claimer";
+import { ClaimerController } from "../creeps/claimer";
 import { claimFlag } from "../constants/flags";
 import { allyUsernames } from "../constants/allies";
-import { RemoteBuilderController } from "../roles/specializations/remote-builder";
+import { RemoteBuilderController } from "../creeps/specializations/remote-builder";
+import { RoomState } from "../models/room-state";
+import { myUserName } from "../constants/signature";
+import { filterForEnergy } from "../utility/filters";
+import { StructureUtils } from "../utility/structure-utils";
 
 export class RoomController {
     private readonly room: Room;
-    private readonly roomState: ICurrentRoomState;
+    private readonly roomState: RoomState;
 
     constructor(room: Room) {
         this.room = room;
-        if (room.controller.my) {
-            this.roomState = this.getCurrentRoomState();
+
+        if (this.room.memory.isMyRoom == null) {
+            this.room.memory = RoomController.createDefaultRoomMemory();
+        }
+        if (this.room.memory.isMyRoom) {
+            this.roomState = this.calculateCurrentRoomState();
         } else {
             this.roomState = this.getForeignRoomState();
+        }
+    }
+
+    private static createDefaultRoomMemory(): RoomMemory {
+        return {
+            isMyRoom: false,
+            roomIsSigned: false,
+            damagedStructureIds: [],
+            enemyIds: [],
+            structureIds: [],
+            myStructureIds: [],
+            constructionSiteIds: [],
+            droppedEnergyIds: [],
+            sourceIds: []
         }
     }
 
@@ -32,7 +53,7 @@ export class RoomController {
      * Runs once every loop
      */
     public control(): void {
-        if (this.room.controller.my) {
+        if (this.room.memory.isMyRoom) {
             // Controlling my room
             this.commandStructures();
         }
@@ -79,58 +100,92 @@ export class RoomController {
         }
     }
 
-    /** Returns information about the current state of the room */
-    private getCurrentRoomState(): ICurrentRoomState {
-        const slaves = this.room.find(FIND_MY_CREEPS) as IMyCreep[];
-        const structures = this.room.find(FIND_STRUCTURES);
+    /** Calculates the state of items in the room that don't change often */
+    private calculateNonVolatileRoomState(): RoomState {
+        const allStructures = this.room.find(FIND_STRUCTURES);
         const myStructures = this.room.find(FIND_MY_STRUCTURES);
-        const roomHasSpawn = structures.filter((s) => s.structureType === STRUCTURE_SPAWN).length > 0;
         const constructionSites = this.room.find(FIND_CONSTRUCTION_SITES);
-        const enemies = this.room.find(FIND_HOSTILE_CREEPS)
-            .filter(creep => allyUsernames.indexOf(creep.owner.username) === -1)
-            .sort((a, b) => a.hits - b.hits);
+        // Any dropped energy points
+        const droppedEnergy = this.room.find(FIND_DROPPED_RESOURCES).filter(filterForEnergy);
+        const enemies = this.room.find(FIND_HOSTILE_CREEPS).filter(creep => allyUsernames.indexOf(creep.owner.username) === -1).sort((a, b) => a.hits - b.hits);
+        const roomSources = this.room.find(FIND_SOURCES);
 
-        const fillableStructures = myStructures.filter((structure) =>
+        let isRoomSigned = false;
+        if (this.room.controller != null) {
+            isRoomSigned = (this.room.controller.sign != null && this.room.controller.sign.username == myUserName);
+        }
+        const damagedStructures = allStructures.filter((x) => x.hits < x.hitsMax).sort((a, b) => a.hits - b.hits);
+
+        // Store in long term memory for quick retrieval
+        this.room.memory.isMyRoom = (this.room.controller != null && this.room.controller.my);
+        this.room.memory.roomIsSigned = isRoomSigned;
+        this.room.memory.damagedStructureIds = damagedStructures.map(x => x.id);
+        this.room.memory.enemyIds = enemies.map(x => x.id);
+        this.room.memory.structureIds = allStructures.map(x => x.id);
+        this.room.memory.myStructureIds = myStructures.map(x => x.id);
+        this.room.memory.constructionSiteIds = constructionSites.map(site => site.id);
+        this.room.memory.droppedEnergyIds = droppedEnergy.map(resource => resource.id);
+        this.room.memory.sourceIds = roomSources.map(source => source.id);
+
+        // Finally Create the new room state object from the retrieved values. and return
+        const newState = new RoomState();
+        newState.damagedStructures = damagedStructures;
+        newState.enemies = enemies;
+        newState.structures = allStructures;
+        newState.myStructures = myStructures;
+        newState.constructionSites = constructionSites;
+        newState.sources = roomSources;
+
+        return newState;
+    }
+
+    /** Returns information about the current state of the room */
+    private calculateCurrentRoomState(): RoomState {
+        let roomState: RoomState;
+        // Either regenerate the whole memory or just the volatile things depending on game ticks
+        if (Game.time % 10) {
+            // Update things that don't need to be updated all the time
+            roomState = this.calculateNonVolatileRoomState();
+        } else {
+            // Get data from stored state
+            roomState = new RoomState(this.room.memory);
+        }
+
+        const slaves = this.room.find(FIND_MY_CREEPS) as IMyCreep[];
+        const nonFullStructures = roomState.structures.filter((structure) =>
             structure.structureType === STRUCTURE_EXTENSION ||
             structure.structureType === STRUCTURE_SPAWN ||
             structure.structureType === STRUCTURE_TOWER &&
-            structure.energy < structure.energyCapacity);
+            structure.energy < structure.energyCapacity) as AnyOwnedStructure[];
 
-        const damagedAllies = slaves.filter((x) => x.hits < x.hitsMax).sort((a, b) => a.hits - b.hits);
-        const damagedStructures = structures.filter((x) => x.hits < x.hitsMax).sort((a, b) => a.hits - b.hits);
+        const nonEmptyStorage = StructureUtils.findNonEmptyStorageStructures(roomState.structures);
 
-        return {
-            constructionSites,
-            damagedAllies,
-            damagedStructures,
-            enemies,
-            myStructures,
-            fillableStructures,
-            roomHasSpawn,
-            slaves,
-            structures,
-        };
+        roomState.slaves = slaves;
+        roomState.nonFullStructures = nonFullStructures;
+        roomState.nonEmptyStorage = nonEmptyStorage;
+        return roomState;
     }
 
     /** Returns the state of an unowned room */
-    private getForeignRoomState(): ICurrentRoomState {
-        const slaves = this.room.find(FIND_MY_CREEPS) as IMyCreep[];
-        const structures = this.room.find(FIND_STRUCTURES);
-        const constructionSites = this.room.find(FIND_CONSTRUCTION_SITES);
-        const roomHasSpawn = structures.filter((s) => s.structureType === STRUCTURE_SPAWN).length > 0;
-        const enemies = this.room.find(FIND_HOSTILE_CREEPS).sort((a, b) => a.hits - b.hits);
+    private getForeignRoomState(): RoomState {
+        // Create a new state object for this room
+        const roomState = new RoomState();
+        if (Game.time % 10) {
+            // Check every 10 loops if the room is now mine
+            this.room.memory.isMyRoom = (this.room.controller != null && this.room.controller.my);
+        }
 
-        return {
-            constructionSites,
-            enemies,
-            slaves,
-            structures,
-            damagedAllies: [],
-            damagedStructures: [],
-            myStructures: [],
-            fillableStructures: [],
-            roomHasSpawn,
-        };
+        // Because room isn't ours yet, calculate everything every tick
+        const slaves = this.room.find(FIND_MY_CREEPS) as IMyCreep[];
+        const allStructures = this.room.find(FIND_STRUCTURES);
+        const myStructures = this.room.find(FIND_MY_STRUCTURES);
+        const constructionSites = this.room.find(FIND_CONSTRUCTION_SITES);
+
+        roomState.slaves = slaves;
+        roomState.structures = allStructures;
+        roomState.myStructures = myStructures;
+        roomState.constructionSites = constructionSites;
+        return roomState;
     }
 
     /** Commands all the creeps in the room to perform their actions */

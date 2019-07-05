@@ -2,32 +2,32 @@
 export class MemoryController {
     /** Cleans out any unassigned variables in memory to prevent overflow of old data */
     public static clean(): void {
-        this.forgetDeadCreeps();
+        this.removeDeadCreeps();
     }
 
     /**
      * Loop through all the creeps in memory and forget them if
-     * they have died because they aren't any use to me now
+     * they have died
      */
-    private static forgetDeadCreeps(): void {
+    private static removeDeadCreeps(): void {
         if (Memory.creeps == null) {
             return;
         }
 
-        const allCreepNames = Object.keys(Memory.creeps);
-        const allCreepsCount = allCreepNames.length;
+        const creepIds = Object.keys(Memory.creeps);
+        const allCreepsCount = creepIds.length;
         for (let i = 0; i < allCreepsCount; i++) {
-            const thisCreepName = Game.creeps[allCreepNames[i]];
-            if (thisCreepName == null) {
-                delete Memory.creeps[thisCreepName];
-                this.removePossibleBuilder(thisCreepName);
+            const thisId = creepIds[i];
+            if (Game.creeps[thisId] == null) {
+                delete Memory.creeps[thisId];
+                this.removePossibleBuilder(thisId);
             }
         }
     }
 
     /** If the given name is present in the remote builders list. Remove it */
-    private static removePossibleBuilder(name: string): void {
-        const index = Memory.myMemory.remoteBuilders.indexOf(name);
+    private static removePossibleBuilder(id: string): void {
+        const index = Memory.myMemory.remoteBuilders.indexOf(id);
 
         if (index !== -1) {
             // Was found. Remove from the list

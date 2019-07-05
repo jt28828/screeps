@@ -1,13 +1,13 @@
 import { BuilderController } from "../builder";
 import { IBuilderCreep } from "../../interfaces/builder-creep";
-import { ICurrentRoomState } from "../../interfaces/room";
 import { remoteBuildSiteFlag } from "../../constants/flags";
 import { MyCreepRoles } from "../../types/roles";
+import { RoomState } from "../../models/room-state";
 
 export class RemoteBuilderController extends BuilderController {
     private readonly remoteBuildFlag: Flag;
 
-    constructor(creep: IBuilderCreep, roomState: ICurrentRoomState) {
+    constructor(creep: IBuilderCreep, roomState: RoomState) {
         super(creep, roomState);
         this.remoteBuildFlag = Game.flags[remoteBuildSiteFlag];
     }
@@ -26,7 +26,8 @@ export class RemoteBuilderController extends BuilderController {
         } else {
             // Is currently in the right room. Convert to a regular builder and delete flag if needed
             this.convertToRegularBuilder();
-            if (this.roomState.roomHasSpawn) {
+            const roomHasSpawn = this.creep.room.find(FIND_MY_SPAWNS);
+            if (roomHasSpawn) {
                 // Room already has spawn. Delete the flag so no more builders come
                 this.remoteBuildFlag.remove();
             }

@@ -1,9 +1,9 @@
 import { CreepFactory } from "../factories/creep-factory";
 import { ICreepCounts } from "../interfaces/creep-counts";
 import { IMyCreep } from "../interfaces/my-creep";
-import { ICurrentRoomState } from "../interfaces/room";
 import { MyCreepRoles } from "../types/roles";
 import { maxCreepCounts } from "../constants/creep-counts";
+import { RoomState } from "../models/room-state";
 
 /** Contains logic to control room spawns */
 export class SpawnController {
@@ -17,7 +17,7 @@ export class SpawnController {
      * 3. Builder
      * 4. Miner
      */
-    public static spawn(spawner: StructureSpawn, roomState: ICurrentRoomState, room: Room) {
+    public static spawn(spawner: StructureSpawn, roomState: RoomState, room: Room) {
         this.spawnCreeps(spawner, roomState.slaves, maxCreepCounts, room);
     }
 

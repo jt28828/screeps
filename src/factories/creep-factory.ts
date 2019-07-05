@@ -99,28 +99,17 @@ export class CreepFactory {
      * */
     private static generateMaxWorkerBodyParts(currentRoom: Room): BodyPartConstant[] {
         const workCost = 100;
-        const currentEnergy = currentRoom.energyAvailable;
-
-        /**
-         * Parts are split into 6ths
-         * 1/6th are work parts
-         * 2/6th are carry parts
-         * 3/6th are move parts
-         */
-        const requiredWorkParts = Math.floor(currentEnergy / workCost / 6);
-        const requiredCarryParts = requiredWorkParts * 2;
-        const requiredMoveParts = requiredWorkParts * 3;
-
-        if (requiredWorkParts <= 1 || requiredCarryParts <= 1) {
-            // Returns the most basic creep possible. Requires 200 energy
-            return [WORK, CARRY, MOVE];
+        const carryCost = 50;
+        const moveConst = 50;
+        const layerCost = workCost + moveConst + carryCost + moveConst;
+        let energyLeft = currentRoom.energyAvailable;
+        let bodyParts: BodyPartConstant[] = [];
+        while (energyLeft >= 250) {
+            // Add "Layers" of parts to the creep until there's no energy left for another layer. Min amount is 250 energy
+            bodyParts = bodyParts.concat([WORK, MOVE, CARRY, MOVE]);
+            energyLeft -= layerCost;
         }
-        // Finally create an array of body parts and join together to return
-        const workParts: BodyPartConstant[] = Array(requiredWorkParts).fill(WORK);
-        const carryParts: BodyPartConstant[] = Array(requiredCarryParts).fill(CARRY);
-        let moveParts: BodyPartConstant[] = Array(requiredMoveParts).fill(MOVE);
-
-        return [...workParts, ...carryParts, ...moveParts];
+        return bodyParts;
     }
 
     /** Generates a creep's memory */

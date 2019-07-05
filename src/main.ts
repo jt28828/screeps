@@ -18,13 +18,13 @@ function initialiseScript() {
         };
     }
     runOccasionalTasks();
-    console.log(`Script updated: Now running 1.7.0`);
+    console.log(`Script updated: Now running 1.8.0`);
 }
 
 /** The loop function called by the game once every tick. Assigns commands to everything */
 export function loop(): void {
     profiler.wrap(function () {
-        if (Game.time % 5) {
+        if (Game.time % 15) {
             // Run the occasional scripts
             runOccasionalTasks();
         }

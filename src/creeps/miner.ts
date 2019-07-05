@@ -1,12 +1,12 @@
 import { IMinerCreep } from "../interfaces/miner-creep";
-import { ICurrentRoomState } from "../interfaces/room";
 import { CreepController } from "./base/creep";
 import { ICreepRole } from "./creep-role";
+import { RoomState } from "../models/room-state";
 
 export class MinerController extends CreepController implements ICreepRole {
     protected creep: IMinerCreep;
 
-    constructor(creep: IMinerCreep, roomState: ICurrentRoomState) {
+    constructor(creep: IMinerCreep, roomState: RoomState) {
         super(creep, roomState);
         this.creep = creep;
     }
@@ -26,7 +26,7 @@ export class MinerController extends CreepController implements ICreepRole {
             if (!this.creep.memory.isMining) {
                 this.startHarvesting();
             }
-            this.harvestOrTravel();
+            this.collectEnergy();
         }
     }
 

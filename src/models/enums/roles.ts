@@ -1,4 +1,4 @@
-/** Contains all the options for the roles for different creeps */
+/** Contains all the options for the creeps for different creeps */
 export const enum MyCreepRoles {
     harvester,
     upgrader,

@@ -1,15 +1,14 @@
-import { IMyCreep } from "./my-creep";
-
-/** Contains information about the current room */
-export interface ICurrentRoomState {
-    slaves: IMyCreep[];
+export interface IRoomState {
+    // Updates only once every 10 tick
+    isMyRoom: boolean;
+    damagedStructures: Structure[];
+    enemies: Creep[];
     structures: AnyStructure[];
     myStructures: AnyOwnedStructure[];
-    /** Structures that are not yet full and can be filled with energy */
-    fillableStructures: AnyOwnedStructure[];
-    damagedAllies: Creep[];
-    damagedStructures: Structure[];
     constructionSites: ConstructionSite[];
-    roomHasSpawn: boolean;
-    enemies: Creep[];
+
+    // Updates every tick
+    slaves: Creep[];
+    /** Structures that are not yet full and can be filled with energy */
+    nonEmptyStorage: AnyOwnedStructure[];
 }

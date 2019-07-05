@@ -1,15 +1,15 @@
 import { IBuilderCreep } from "../interfaces/builder-creep";
-import { ICurrentRoomState } from "../interfaces/room";
 import { CreepController } from "./base/creep";
 import { ICreepRole } from "./creep-role";
 import { priorityRepairFlag, remoteBuildSiteFlag } from "../constants/flags";
 import { maxRemoteBuilderCount } from "../constants/creep-counts";
 import { MyCreepRoles } from "../types/roles";
+import { RoomState } from "../models/room-state";
 
 export class BuilderController extends CreepController implements ICreepRole {
     protected creep: IBuilderCreep;
 
-    constructor(creep: IBuilderCreep, roomState: ICurrentRoomState) {
+    constructor(creep: IBuilderCreep, roomState: RoomState) {
         super(creep, roomState);
         this.creep = creep;
     }
@@ -26,7 +26,7 @@ export class BuilderController extends CreepController implements ICreepRole {
         }
 
         if (this.creep.memory.role === MyCreepRoles.remoteBuilder) {
-            // Creep has switched roles. Do nothing for this turn
+            // Creep has switched creeps. Do nothing for this turn
             return;
         }
 
@@ -40,17 +40,9 @@ export class BuilderController extends CreepController implements ICreepRole {
 
         } else {
             if (!this.creep.memory.isMining) {
-                // Creep isn't mining yet
-                const success = this.retrieveEnergyFromStorage();
-                if (success) {
-                    // Container was found and has energy in it. Collect from it
-                    this.creep.memory.isCollecting = true;
-                    return;
-                }
+                // Creep isn't mining yet. Get it to collect energy
+                this.collectEnergy(true);
             }
-            this.creep.memory.isCollecting = false;
-            this.creep.memory.isMining = true;
-            this.harvestOrTravel();
         }
     }
 
@@ -82,7 +74,7 @@ export class BuilderController extends CreepController implements ICreepRole {
     protected buildOrTravel(): boolean {
         const constructionSites = this.roomState.constructionSites;
         if (constructionSites.length) {
-            const closestSite = this.getClosestRoomObject(this.roomState.constructionSites);
+            const closestSite = this.getClosestItem(this.roomState.constructionSites);
 
             if (closestSite == null) {
                 // There are no construction sites to build at
