@@ -3,8 +3,8 @@ export function filterForEnergy(resource: Resource) {
     return resource.amount >= minAmount && resource.resourceType === RESOURCE_ENERGY;
 }
 
-export function filterNonEmptyStorage(structure: Structure) {
-    const structureIsStorage = structure.structureType === STRUCTURE_CONTAINER || structure.structureType === STRUCTURE_STORAGE;
+export function filterNonEmptyContainers(structure: Structure): structure is StructureContainer {
+    const structureIsStorage = structure.structureType === STRUCTURE_CONTAINER;
     if (!structureIsStorage) {
         return false;
     }
@@ -12,7 +12,7 @@ export function filterNonEmptyStorage(structure: Structure) {
     return !structureIsEmpty;
 }
 
-export function filterNonFullStorage(structure: Structure) {
+export function filterNonFullContainers(structure: Structure): structure is StructureContainer {
     const structureIsContainer = structure.structureType === STRUCTURE_CONTAINER;
     if (!structureIsContainer) {
         return false;

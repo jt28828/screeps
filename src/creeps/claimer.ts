@@ -2,7 +2,7 @@ import { CreepController } from "./base/creep";
 import { ICreepRole } from "./creep-role";
 import { IClaimerCreep } from "../interfaces/claimer-creep";
 import { remoteBuildSiteFlag } from "../constants/flags";
-import { RoomState } from "../models/room-state";
+import { RoomState } from "../models/room/room-state";
 
 export class ClaimerController extends CreepController implements ICreepRole {
     /** A reference to the creep to control */

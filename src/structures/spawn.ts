@@ -3,7 +3,7 @@ import { ICreepCounts } from "../interfaces/creep-counts";
 import { IMyCreep } from "../interfaces/my-creep";
 import { MyCreepRoles } from "../types/roles";
 import { maxCreepCounts } from "../constants/creep-counts";
-import { RoomState } from "../models/room-state";
+import { RoomState } from "../models/room/room-state";
 
 /** Contains logic to control room spawns */
 export class SpawnController {

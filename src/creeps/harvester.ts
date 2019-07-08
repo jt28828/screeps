@@ -2,7 +2,7 @@ import { IHarvesterCreep } from "../interfaces/harvester-creep";
 import { IMyCreep } from "../interfaces/my-creep";
 import { CreepController } from "./base/creep";
 import { ICreepRole } from "./creep-role";
-import { RoomState } from "../models/room-state";
+import { RoomState } from "../models/room/room-state";
 import { CreepAction } from "../models/enums/creep-action";
 
 /**

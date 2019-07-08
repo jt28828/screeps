@@ -1,7 +1,7 @@
 /**
  * Contains logic for controlling towers to attack enemies or heal friendlies
  */
-import { RoomState } from "../models/room-state";
+import { RoomState } from "../models/room/room-state";
 
 export class TowerController {
     private tower: StructureTower;

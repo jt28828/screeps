@@ -12,10 +12,9 @@ import { ClaimerController } from "../creeps/claimer";
 import { claimFlag } from "../constants/flags";
 import { allyUsernames } from "../constants/allies";
 import { RemoteBuilderController } from "../creeps/specializations/remote-builder";
-import { RoomState } from "../models/room-state";
+import { RoomState } from "../models/room/room-state";
 import { myUserName } from "../constants/signature";
 import { filterForEnergy } from "../utility/filters";
-import { StructureUtils } from "../utility/structure-utils";
 
 export class RoomController {
     private readonly room: Room;
@@ -63,16 +62,14 @@ export class RoomController {
 
     /** Commands all the structures in the room to perform their actions */
     private commandStructures() {
-        const justTowers = this.roomState.structures.filter((s) => s.structureType === STRUCTURE_TOWER) as StructureTower[];
-        const justSpawners = this.roomState.structures.filter((s) => s.structureType === STRUCTURE_SPAWN) as StructureSpawn[];
-
         // Command all the structures to perform actions
-        this.commandTowers(justTowers);
-        this.commandSpawners(justSpawners);
+        this.commandTowers();
+        this.commandSpawners();
     }
 
     /** Commands the towers in this room to shoot or heal */
-    private commandTowers(towers?: StructureTower[]) {
+    private commandTowers() {
+        const towers = this.roomState.sortedStructures.towers;
         if (towers == null || towers.length === 0) {
             // No towers present
             return;
@@ -87,7 +84,8 @@ export class RoomController {
     }
 
     /** Commands the spawners in this room to spawn if necessary */
-    private commandSpawners(spawns?: StructureSpawn[]) {
+    private commandSpawners() {
+        const spawns = this.roomState.sortedStructures.spawns;
         if (spawns == null || spawns.length === 0) {
             // No spawns present
             return;
@@ -128,15 +126,9 @@ export class RoomController {
         this.room.memory.sourceIds = roomSources.map(source => source.id);
 
         // Finally Create the new room state object from the retrieved values. and return
-        const newState = new RoomState();
-        newState.damagedStructures = damagedStructures;
-        newState.enemies = enemies;
-        newState.structures = allStructures;
-        newState.myStructures = myStructures;
-        newState.constructionSites = constructionSites;
-        newState.sources = roomSources;
-
-        return newState;
+        return RoomState.fromRetrievedValues(
+            this.room, damagedStructures, enemies, allStructures, myStructures, constructionSites, roomSources, droppedEnergy
+        );
     }
 
     /** Returns information about the current state of the room */
@@ -147,22 +139,10 @@ export class RoomController {
             // Update things that don't need to be updated all the time
             roomState = this.calculateNonVolatileRoomState();
         } else {
-            // Get data from stored state
-            roomState = new RoomState(this.room.memory);
+            // Get data from stored state. Will update the volatile items as well
+            roomState = new RoomState(this.room);
         }
 
-        const slaves = this.room.find(FIND_MY_CREEPS) as IMyCreep[];
-        const nonFullStructures = roomState.structures.filter((structure) =>
-            structure.structureType === STRUCTURE_EXTENSION ||
-            structure.structureType === STRUCTURE_SPAWN ||
-            structure.structureType === STRUCTURE_TOWER &&
-            structure.energy < structure.energyCapacity) as AnyOwnedStructure[];
-
-        const nonEmptyStorage = StructureUtils.findNonEmptyStorageStructures(roomState.structures);
-
-        roomState.slaves = slaves;
-        roomState.nonFullStructures = nonFullStructures;
-        roomState.nonEmptyStorage = nonEmptyStorage;
         return roomState;
     }
 

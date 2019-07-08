@@ -1,7 +1,7 @@
 import { IUpgraderCreep } from "../interfaces/upgrader-creep";
 import { CreepController } from "./base/creep";
 import { ICreepRole } from "./creep-role";
-import { RoomState } from "../models/room-state";
+import { RoomState } from "../models/room/room-state";
 import { mySignature } from "../constants/signature";
 
 export class UpgraderController extends CreepController implements ICreepRole {

@@ -1,6 +1,5 @@
 import { IMyCreep } from "../../interfaces/my-creep";
-import { RoomState } from "../../models/room-state";
-import { StructureUtils } from "../../utility/structure-utils";
+import { RoomState } from "../../models/room/room-state";
 import { CreepAction } from "../../models/enums/creep-action";
 
 /** Contains functions that are used across all creep types */
@@ -25,7 +24,7 @@ export class CreepController {
         return this.creep.carry.energy === 0;
     }
 
-    /** Whether or not the current creep is collecting enery */
+    /** Whether or not the current creep is collecting energy */
     protected get creepCurrentlyCollecting(): boolean {
         return this.creep.memory.isMining === true || this.creep.memory.isCollecting === true;
     }
@@ -68,7 +67,7 @@ export class CreepController {
 
     /** Attempts to harvest energy if within range or moves closer if not */
     protected collectEnergy(allowStorage: boolean = false) {
-        if (this.roomState.droppedResources.length !== 0) {
+        if (this.roomState.resources.droppedEnergy.length !== 0) {
             // Try and collect the dropped energy first
             this.collectDroppedEnergy();
         } else if (allowStorage) {
@@ -86,7 +85,7 @@ export class CreepController {
 
         if (this.creep.memory.storageTarget == null) {
             // Get a new storage target
-            const storageStructures = StructureUtils.findNonFullStorage(this.roomState.structures, this.creep);
+            const storageStructures = this.roomState.storage.getNonFull();
 
             if (storageStructures.length === 0) {
                 // No storage found.
@@ -165,7 +164,7 @@ export class CreepController {
 
         if (this.creep.memory.storageTarget == null) {
             // Get a new storage target
-            const storageStructures = this.roomState.nonEmptyStorage;
+            const storageStructures = this.roomState.storage.getNonEmpty();
 
             if (storageStructures.length !== 0) {
                 const closestStorage = this.creep.pos.findClosestByPath(storageStructures);
@@ -204,7 +203,7 @@ export class CreepController {
 
     /** Directs this creep to pick up energy that has been dropped on the ground */
     private collectDroppedEnergy() {
-        const closestDropPoint = this.creep.pos.findClosestByPath(this.roomState.droppedResources);
+        const closestDropPoint = this.creep.pos.findClosestByPath(this.roomState.resources.droppedEnergy);
 
         if (closestDropPoint != null) {
             const response = this.creep.pickup(closestDropPoint);
@@ -243,7 +242,7 @@ export class CreepController {
 
     private getClosestSource(): Source | null {
         // Try and find either the closest source or just any if need
-        const roomSources = this.roomState.sources;
+        const roomSources = this.roomState.resources.sources;
         let closestSource = this.creep.pos.findClosestByPath(roomSources);
 
         if (closestSource == null) {

@@ -2,7 +2,7 @@ import { BuilderController } from "../builder";
 import { IBuilderCreep } from "../../interfaces/builder-creep";
 import { remoteBuildSiteFlag } from "../../constants/flags";
 import { MyCreepRoles } from "../../types/roles";
-import { RoomState } from "../../models/room-state";
+import { RoomState } from "../../models/room/room-state";
 
 export class RemoteBuilderController extends BuilderController {
     private readonly remoteBuildFlag: Flag;

@@ -4,7 +4,7 @@ import { ICreepRole } from "./creep-role";
 import { priorityRepairFlag, remoteBuildSiteFlag } from "../constants/flags";
 import { maxRemoteBuilderCount } from "../constants/creep-counts";
 import { MyCreepRoles } from "../types/roles";
-import { RoomState } from "../models/room-state";
+import { RoomState } from "../models/room/room-state";
 
 export class BuilderController extends CreepController implements ICreepRole {
     protected creep: IBuilderCreep;
