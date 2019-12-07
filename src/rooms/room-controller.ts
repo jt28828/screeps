@@ -16,10 +16,11 @@ import { RemoteBuilderController } from "../roles/specializations/remote-builder
 
 export class RoomController {
     private readonly isMyRoom: boolean | undefined;
-    private readonly room!: Room;
+    private readonly room: Room;
     private readonly roomState: ICurrentRoomState;
 
     constructor(room: Room) {
+        this.room = room;
         this.isMyRoom = room.controller?.my;
         if (this.isMyRoom) {
             this.roomState = this.getCurrentRoomState();
