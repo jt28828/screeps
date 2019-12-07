@@ -1,6 +1,6 @@
 # Screeps Repo
 
-![](https://screeps.com/img/logotype.svg)
+![](https://screeps.com/images/logotype-animated.svg)
 
 ## This is my repo for my logic in the game screeps.
 
