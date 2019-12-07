@@ -15,12 +15,13 @@ import { allyUsernames } from "../constants/allies";
 import { RemoteBuilderController } from "../roles/specializations/remote-builder";
 
 export class RoomController {
-    private readonly room: Room;
+    private readonly isMyRoom: boolean | undefined;
+    private readonly room!: Room;
     private readonly roomState: ICurrentRoomState;
 
     constructor(room: Room) {
-        this.room = room;
-        if (room.controller.my) {
+        this.isMyRoom = room.controller?.my;
+        if (this.isMyRoom) {
             this.roomState = this.getCurrentRoomState();
         } else {
             this.roomState = this.getForeignRoomState();
@@ -32,7 +33,7 @@ export class RoomController {
      * Runs once every loop
      */
     public control(): void {
-        if (this.room.controller.my) {
+        if (this.isMyRoom) {
             // Controlling my room
             this.commandStructures();
         }

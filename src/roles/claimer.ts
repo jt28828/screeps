@@ -30,10 +30,10 @@ export class ClaimerController extends CreepController implements ICreepRole {
                 // Otherwise travel
                 this.travelAcrossRooms();
             }
-        } else if (this.isInFlagRoom() && !this.creep.room.controller.my) {
+        } else if (this.isInFlagRoom() && !this.creep.room.controller?.my) {
             // Creep is already in correct room. Get it to continue its task
             this.claimController();
-        } else if (this.isInFlagRoom() && this.creep.room.controller.my) {
+        } else if (this.isInFlagRoom() && this.creep.room.controller?.my) {
             // Creep has claimed the controller. Destroy the flag and transition into a builder to build the new spawn
             this.replaceFlag();
             Memory.myMemory.claimerPresent = false;
@@ -72,7 +72,7 @@ export class ClaimerController extends CreepController implements ICreepRole {
 
     /** Claims the controller or travels to it */
     private claimController(): void {
-        const thisController = this.creep.room.controller;
+        const thisController = this.creep.room.controller as StructureController;
         if (this.creep.pos.isNearTo(thisController)) {
             // Claim the controller
             this.creep.say("🧠 Claiming");
