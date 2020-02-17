@@ -1,47 +1,39 @@
-import { MemoryController } from "./memory/memory-controller";
-import { RoomController } from "./rooms/room-controller";
-
-const profiler = require('screeps-profiler');
-
+import { MemoryManager } from "./memory/memory-manager";
+import { RoomController } from "./controllers/room-controller";
 
 initialiseScript();
-profiler.enable();
 
 /** Performs any actions that need to occur only once on script reload */
 function initialiseScript() {
     // Initialise Memory
-    if (Memory.myMemory == null) {
-        Memory.myMemory = {
-            roomNames: [],
-            remoteBuilders: [],
-            claimerPresent: false
-        };
-    }
+    MemoryManager.initialise();
     runOccasionalTasks();
-    console.log(`Script updated: Now running 1.8.0`);
+    console.log(`Script updated: Now running 2.0`);
 }
 
 /** The loop function called by the game once every tick. Assigns commands to everything */
 export function loop(): void {
-    profiler.wrap(function () {
-        if (Game.time % 15) {
-            // Run the occasional scripts
-            runOccasionalTasks();
-        }
+    if (Game.time % 15) {
+        // Run the occasional scripts
+        runOccasionalTasks();
+    }
 
-        // Assign commands via all rooms.
-        for (let i = 0; i < Memory.myMemory.roomNames.length; i++) {
-            const myRoomName = Memory.myMemory.roomNames[i];
-            const thisController = new RoomController(Game.rooms[myRoomName]);
-            thisController.control();
+    // Assign commands via all rooms.
+    const isFiveTick = Game.time % 15;
+    for (let i = 0; i < Memory.myMemory.roomIds.length; i++) {
+        const myRoomName = Memory.myMemory.roomIds[i];
+        const thisController = new RoomController(Game.rooms[myRoomName]);
+        thisController.controlRoom();
+        if (isFiveTick) {
+            thisController.runNonCriticalTasks();
         }
-    });
+    }
 }
 
 /** Performs any actions that are only run every few gameloops */
 function runOccasionalTasks() {
     // Cleanup memory
-    MemoryController.clean();
+    MemoryManager.clean();
     // Check for new rooms and replace the current array with the new one
-    Memory.myMemory.roomNames = Object.keys(Game.rooms);
+    Memory.myMemory.roomIds = Object.keys(Game.rooms);
 }
