@@ -1,11 +1,12 @@
 import { TownPlanner } from "./town-planner";
 import { RoomStatus } from "../enums/room-status";
-import { RoomState } from "../models/state/room-state";
+import { RoomMemoryManager } from "../memory/room-memory-manager";
+import { IController } from "../models/interfaces/controller";
 
-export class RoomController {
-    private _room: Room;
-    private _roomFlags: ReadonlyArray<Flag>;
-    private readonly _roomState: RoomState;
+export class RoomController implements IController {
+    private readonly _room: Room;
+    private readonly _roomFlags: ReadonlyArray<Flag>;
+    private readonly _roomState!: RoomMemoryManager;
 
 
     constructor(room: Room) {
@@ -16,9 +17,9 @@ export class RoomController {
                 this._room.memory = RoomController.createDefaultRoomMemory(room);
             }
             if (this._room.memory.roomStatus === RoomStatus.owned) {
-                this._roomState = this.calculateCurrentRoomState();
+                this._roomState = new RoomMemoryManager(this._room);
             } else {
-                this._roomState = this.getForeignRoomState();
+                this._roomState = new RoomMemoryManager(this._room);
             }
 
         } else {
@@ -29,6 +30,7 @@ export class RoomController {
 
     private static createDefaultRoomMemory(room: Room): RoomMemory {
         return {
+            sourceMiners: {},
             roomStatus: RoomStatus.unclaimed,
             roomIsSigned: false,
             damagedStructureIds: [],
@@ -41,34 +43,29 @@ export class RoomController {
         }
     }
 
-    /** Returns information about the current state of the room */
-    private calculateCurrentRoomState(): RoomState {
-        const roomState = new RoomState(this._room);
-        // Either regenerate the whole memory or just the volatile things depending on game ticks
-        if (Game.time % 10) {
-            // Update things that don't need to be updated all the time
-            roomState.calculateNonVolatileRoomState().saveStateToMemory();
-        }
-
-        return roomState;
-    }
-
     /** Controls the creeps and buildings in the current room */
-    public controlRoom() {
+    public control() {
+        const test = this._roomState?.myCreeps;
+        if (test?.length != null) {
 
+        }
     }
 
     /** Runs non-critical tasks, usually only every few ticks */
     public runNonCriticalTasks() {
+        console.log("running non-critical tasks");
+        this._roomState.calculateNonVolatileRoomState()
+            .saveStateToMemory();
+    }
+
+    /** Runs tasks for this room that only need to be run rarely */
+    public runRareTasks() {
+        console.log("running rare tasks");
         // Place automated build sites
         if (this._room.memory.roomStatus === RoomStatus.owned) {
             // Only build in owned rooms
             const townPlanner = new TownPlanner(this._room, this._roomFlags);
-            townPlanner.placeBuildsites();
+            townPlanner.control();
         }
-    }
-
-    private controlCreeps() {
-
     }
 }

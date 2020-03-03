@@ -19,9 +19,26 @@ declare global {
         myStructureIds: string[];
         constructionSiteIds: string[];
         sourceIds: string[];
+        /** The ID of miners associated with a source */
+        sourceMiners: { [sourceId: string]: string[] }
     }
 
     interface CreepMemory {
-        currentRole: CreepRole
+        currentRole: CreepRole,
+        energyCollectionTargetId?: string;
+    }
+
+    // ============================================================
+    // Creep Specializations (Only difference is memory properties)
+    // ============================================================
+
+
+    /** A creep specialization that is used to rapidly mine for energy */
+    interface MinerCreep extends Creep {
+        memory: MinerCreepMemory;
+    }
+
+    interface MinerCreepMemory extends CreepMemory {
+        miningSourceId?: string;
     }
 }

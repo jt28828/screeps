@@ -1,4 +1,4 @@
-export type GroupBuildingFlags = "extension-group" | "road-group";
+export type GroupBuildingFlags = "extension-group" | "road-group" | "tower-group";
 
 export const buildingFlags: ReadonlyArray<BuildableStructureConstant> = [
     STRUCTURE_EXTENSION,
@@ -21,4 +21,5 @@ export const buildingFlags: ReadonlyArray<BuildableStructureConstant> = [
 export const groupBuildingFlags: ReadonlyArray<GroupBuildingFlags> = [
     "extension-group",
     "road-group",
+    "tower-group",
 ];

@@ -19,13 +19,20 @@ export function loop(): void {
     }
 
     // Assign commands via all rooms.
-    const isFiveTick = Game.time % 15;
+    const isNonCriticalTick = Game.time % 5 === 0;
+    const isRareTick = Game.time % 30 === 0;
     for (let i = 0; i < Memory.myMemory.roomIds.length; i++) {
         const myRoomName = Memory.myMemory.roomIds[i];
         const thisController = new RoomController(Game.rooms[myRoomName]);
-        thisController.controlRoom();
-        if (isFiveTick) {
+        thisController.control();
+
+        if (isNonCriticalTick) {
+            // Run non-critical tasks
             thisController.runNonCriticalTasks();
+        }
+
+        if (isRareTick) {
+            thisController.runRareTasks();
         }
     }
 }

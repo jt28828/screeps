@@ -1,3 +1,9 @@
 export const enum CreepRole {
-    harvester
+    miner,
+    transporter,
+    upgrader,
+    builder,
+    allRounder,
+    claimer,
+    attacker
 }
