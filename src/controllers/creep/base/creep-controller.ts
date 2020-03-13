@@ -79,21 +79,23 @@ export abstract class CreepController<TCreepType extends Creep = Creep> implemen
     }
 
     /** Finds the closest source of saved energy to the current creep and saves it to the creeps memory */
-    public getNewEnergyTarget() {
+    public getNewEnergyTarget(nonEmpty: boolean = false): string | undefined {
         // No energy collection target set yet. Get one first
         const energyTargets: AnyStructure[] = [];
 
         this._roomState.structures.forEach((struct) => {
             if (struct.structureType === STRUCTURE_CONTAINER || struct.structureType === STRUCTURE_STORAGE) {
-                energyTargets.push(struct);
+                if (nonEmpty && struct.store.energy !== 0) {
+                    energyTargets.push(struct);
+                }
             }
         });
 
         // Get the closest to the current position
         const closest = this._creep.pos.findClosestByPath(energyTargets);
 
-        // Save the target to memory
-        this._creep.memory.currentTaskTargetId = closest?.id;
+        // Save the target to memory and return
+        return this._creep.memory.currentTaskTargetId = closest?.id;
     }
 
     /** Returns whether the managed creep is next to the provided position */

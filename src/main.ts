@@ -1,5 +1,5 @@
 import { MemoryManager } from "./memory/memory-manager";
-import { RoomController } from "./controllers/room-controller";
+import { RoomController } from "./controllers/room/room-controller";
 
 initialiseScript();
 

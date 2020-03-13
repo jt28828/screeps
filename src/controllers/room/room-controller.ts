@@ -1,7 +1,7 @@
 import { TownPlanner } from "./town-planner";
-import { RoomStatus } from "../enums/room-status";
-import { RoomMemoryManager } from "../memory/room-memory-manager";
-import { IController } from "../models/interfaces/controller";
+import { RoomStatus } from "../../enums/room-status";
+import { RoomMemoryManager } from "../../memory/room-memory-manager";
+import { IController } from "../../models/interfaces/controller";
 
 export class RoomController implements IController {
     private readonly _room: Room;

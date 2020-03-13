@@ -15,6 +15,9 @@ export class UpgradeModule extends CreepControllerModule {
         if (response === ERR_NOT_IN_RANGE) {
             // Move closer first
             this._controller.moveTo(inGameController.pos);
+        } else if (response === ERR_NOT_ENOUGH_ENERGY) {
+            // No energy left, go get some
+            this._controller.clearTask();
         }
     }
 
