@@ -46,6 +46,6 @@ export class RepairModule extends CreepControllerModule {
 
     /** Retrieves the structure a creep has chosen to repair */
     private getTargetStructure(structureId: string): Structure | undefined {
-        return this._controller._roomState.damagedStructures.get(structureId);
+        return this._controller._roomState.damagedStructures.find(struct => struct.id === structureId);
     }
 }

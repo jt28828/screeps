@@ -12,7 +12,6 @@ declare global {
 
     interface RoomMemory {
         roomStatus: RoomStatus;
-        roomIsSigned: boolean;
         damagedStructureIds: string[];
         enemyIds: string[];
         structureIds: string[];

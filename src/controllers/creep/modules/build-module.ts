@@ -13,7 +13,6 @@ export class BuildModule extends CreepControllerModule {
             if (constructionSite === undefined) {
                 // Construction site doesn't exist, wipe from memory and start again
                 this._controller.clearTaskTarget();
-                this.buildConstructionSite();
             } else {
                 const response = this._creep.build(constructionSite);
 
@@ -49,11 +48,11 @@ export class BuildModule extends CreepControllerModule {
 
     /** Retrieves the construction site a creep has chosen to build */
     public getTargetConstructionSite(siteId: string): ConstructionSite | undefined {
-        return this._controller._roomState.constructionSites.get(siteId);
+        return this._controller._roomState.constructionSites.find(site => site.id === siteId);
     }
 
     /** Returns whether there are any construction sites in the room at all */
     public roomHasConstructionSites(): boolean {
-        return this._controller._roomState.constructionSites.size !== 0;
+        return this._controller._roomState.constructionSites.length !== 0;
     }
 }

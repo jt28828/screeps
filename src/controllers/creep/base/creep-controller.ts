@@ -101,14 +101,8 @@ export abstract class CreepController<TCreepType extends Creep = Creep> {
     }
 
     /** Returns whether the managed creep is next to the provided position */
-    public findClosest<T extends { pos: RoomPosition }>(objectMap: Map<string, T>): T | null {
-        const objArray: T[] = [];
-
-        for (const [, entry] of objectMap.entries()) {
-            objArray.push(entry);
-        }
-
-        return this._creep.pos.findClosestByPath(objArray);
+    public findClosest<T extends { pos: RoomPosition }>(list: T[]): T | null {
+        return this._creep.pos.findClosestByPath(list);
     }
 
     /** Clears the managed creep's current task target */
