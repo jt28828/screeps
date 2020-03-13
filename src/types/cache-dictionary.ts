@@ -1,0 +1,2 @@
+/** A dictionary of gameobjects of the specified type stored by their gameobject ID. Used to prevent having to call Game.getObjectById multiple times for each object */
+declare type CacheDictionary<T extends { id: string }> = { [id: string]: T };

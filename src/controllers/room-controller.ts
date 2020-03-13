@@ -6,7 +6,7 @@ import { IController } from "../models/interfaces/controller";
 export class RoomController implements IController {
     private readonly _room: Room;
     private readonly _roomFlags: ReadonlyArray<Flag>;
-    private readonly _roomState!: RoomMemoryManager;
+    private readonly _roomState: RoomMemoryManager | undefined;
 
 
     constructor(room: Room) {
@@ -49,18 +49,17 @@ export class RoomController implements IController {
         if (test?.length != null) {
 
         }
+
     }
 
     /** Runs non-critical tasks, usually only every few ticks */
     public runNonCriticalTasks() {
-        console.log("running non-critical tasks");
-        this._roomState.calculateNonVolatileRoomState()
+        this._roomState?.calculateNonVolatileRoomState()
             .saveStateToMemory();
     }
 
     /** Runs tasks for this room that only need to be run rarely */
     public runRareTasks() {
-        console.log("running rare tasks");
         // Place automated build sites
         if (this._room.memory.roomStatus === RoomStatus.owned) {
             // Only build in owned rooms
