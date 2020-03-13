@@ -1,12 +1,7 @@
 import { CreepControllerModule } from "./base/creep-controller-module";
-import { CreepController } from "../base/creep-controller";
 
 /** Adds the ability for a creep to mine */
 export class MinerModule extends CreepControllerModule {
-
-    constructor(creep: Creep, controller: CreepController<MinerCreep>) {
-        super(creep, controller);
-    }
 
     /** Collects energy from a source */
     public mineForEnergy() {

@@ -1,13 +1,7 @@
 import { CreepControllerModule } from "./base/creep-controller-module";
-import { CreepController } from "../base/creep-controller";
 
 /** Adds the ability for a creep to deposit and retrieve energy from containers */
 export class EnergyTransferModule extends CreepControllerModule {
-
-    constructor(creep: Creep, controller: CreepController) {
-        super(creep, controller);
-    }
-
     /** Deposits carried energy into the closest energy storage */
     public depositEnergy() {
         if (!this._controller.creepHasEnergyTarget()) {

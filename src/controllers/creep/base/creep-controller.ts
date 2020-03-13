@@ -112,9 +112,20 @@ export abstract class CreepController<TCreepType extends Creep = Creep> implemen
         return this._creep.pos.findClosestByPath(objArray);
     }
 
-    /** Clears the managed creep's current energy target */
+    /** Clears the managed creep's current task target */
     public clearTaskTarget() {
         delete this._creep.memory.currentTaskTargetId;
+    }
+
+    /** Clears the managed creep's current task */
+    public clearTask() {
+        delete this._creep.memory.currentTaskTargetId;
+        delete this._creep.memory.currentTask;
+    }
+
+    /** Sets the current task of the managed creep */
+    public setTask(task: CreepTasks) {
+        this._creep.memory.currentTask = task;
     }
 
     public creepIsFull(): boolean {

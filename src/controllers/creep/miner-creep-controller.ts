@@ -3,6 +3,7 @@ import { RoomMemoryManager } from "../../memory/room-memory-manager";
 import { IController } from "../../models/interfaces/controller";
 import { MinerModule } from "./modules/miner-module";
 import { EnergyTransferModule } from "./modules/energy-transfer-module";
+import { CreepTasks } from "../../enums/creep-tasks";
 
 export class MinerCreepController extends CreepController<MinerCreep> implements IController {
     protected modules: { mine: MinerModule, transfer: EnergyTransferModule };
@@ -19,9 +20,11 @@ export class MinerCreepController extends CreepController<MinerCreep> implements
     public control() {
         if (this.creepIsFull()) {
             // Deposit energy in the closest storage
+            this.setTask(CreepTasks.depositingEnergy);
             this.modules.transfer.depositEnergy()
         } else {
             // Mine for more energy
+            this.setTask(CreepTasks.mining);
             this.modules.mine.mineForEnergy();
         }
     }
