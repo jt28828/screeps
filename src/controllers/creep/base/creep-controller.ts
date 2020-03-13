@@ -1,9 +1,8 @@
-import { IController } from "../../../models/interfaces/controller";
 import { RoomMemoryManager } from "../../../memory/room-memory-manager";
 import { CreepTasks } from "../../../enums/creep-tasks";
 import { CreepControllerModule } from "../modules/base/creep-controller-module";
 
-export abstract class CreepController<TCreepType extends Creep = Creep> implements IController {
+export abstract class CreepController<TCreepType extends Creep = Creep> {
     /** The state of the room the creep is currently in */
     public readonly _roomState: RoomMemoryManager;
     /** The creep this controller instance is performing actions for */
@@ -16,16 +15,14 @@ export abstract class CreepController<TCreepType extends Creep = Creep> implemen
         this._creep = creep;
     }
 
+    public abstract control(): void;
+
     public get memory(): TCreepType["memory"] {
         return this._creep.memory;
     }
 
     public get currentRoom(): Room {
         return this._roomState.room;
-    }
-
-    public control() {
-        this._creep.say("You haven't given me anything to do!!");
     }
 
     /** Moves the creep to the given target while using path caching and stuck detection */

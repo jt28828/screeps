@@ -1,11 +1,10 @@
 import { CreepController } from "./base/creep-controller";
 import { RoomMemoryManager } from "../../memory/room-memory-manager";
-import { IController } from "../../models/interfaces/controller";
 import { MinerModule } from "./modules/miner-module";
 import { EnergyTransferModule } from "./modules/energy-transfer-module";
 import { CreepTasks } from "../../enums/creep-tasks";
 
-export class MinerCreepController extends CreepController<MinerCreep> implements IController {
+export class MinerCreepController extends CreepController<MinerCreep> {
     protected modules: { mine: MinerModule, transfer: EnergyTransferModule };
 
     constructor(roomState: RoomMemoryManager, creep: MinerCreep) {
@@ -16,16 +15,10 @@ export class MinerCreepController extends CreepController<MinerCreep> implements
         }
     }
 
-    /** Orders the miner creep to mine energy or deposit it */
+    /** Orders the miner creep to mine energy. Miner creeps drop their energy directly inside containers so need need for any other logic */
     public control() {
-        if (this.creepIsFull()) {
-            // Deposit energy in the closest storage
-            this.setTask(CreepTasks.depositingEnergy);
-            this.modules.transfer.depositEnergy()
-        } else {
-            // Mine for more energy
-            this.setTask(CreepTasks.mining);
-            this.modules.mine.mineForEnergy();
-        }
+        // Mine for more energy
+        this.setTask(CreepTasks.mining);
+        this.modules.mine.mineForEnergy();
     }
 }

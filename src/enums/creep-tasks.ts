@@ -3,5 +3,6 @@ export const enum CreepTasks {
     depositingEnergy,
     collectingEnergy,
     building,
+    repairing,
     upgrading
 }
