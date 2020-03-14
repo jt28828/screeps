@@ -1,8 +1,7 @@
 import { buildingFlags, GroupBuildingFlags, groupBuildingFlags } from "../../constants/flag-constants";
-import { IController } from "../../models/interfaces/controller";
 
 /** Handles automatic building in the provided room, where required */
-export class TownPlanner implements IController {
+export class TownPlanner {
     /** The room this controller is associated with */
     private room: Room;
     /** The flags present in the current room to be used for planning buildings */

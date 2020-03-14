@@ -12,13 +12,12 @@ declare global {
 
     interface RoomMemory {
         roomStatus: RoomStatus;
+        currentLevel: number,
         damagedStructureIds: string[];
         enemyIds: string[];
         structureIds: string[];
         myStructureIds: string[];
         constructionSiteIds: string[];
         sourceIds: string[];
-        /** The ID of miners associated with a source */
-        sourceMiners: { [sourceId: string]: string[] }
     }
 }

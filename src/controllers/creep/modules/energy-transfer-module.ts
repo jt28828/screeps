@@ -49,31 +49,34 @@ export class EnergyTransferModule extends CreepControllerModule {
         if (!this._controller.creepHasEnergyTarget()) {
             // Get a target first
             newTarget = this._controller.getNewEnergyTarget(true);
+
+            if (newTarget === undefined) {
+                // Couldn't retrieve a target
+                return CustomActionResponse.noEntitiesPresent;
+            }
         }
 
-        if (newTarget === undefined) {
-            // Couldn't retrieve a target
-            return CustomActionResponse.noEntitiesPresent;
-        }
-
-        const collectionTarget = Game.getObjectById<StructureContainer | StructureStorage>(this._creep.memory.currentTaskTargetId);
+        const collectionTarget = this.getContainerOrStorage(this._creep.memory.currentTaskTargetId as string);
 
         if (collectionTarget == null) {
             // Somehow the target was deleted since the last turn. Remove the reference from memory and skip this turn
             this._controller.clearTaskTarget();
         } else {
+            const response = this._creep.withdraw(collectionTarget, RESOURCE_ENERGY);
 
-            if (!this._creep.pos.inRangeTo(collectionTarget.pos, 1)) {
+            if (response === ERR_NOT_IN_RANGE) {
                 // Needs to move closer
                 this._controller.moveTo(collectionTarget.pos);
-            } else {
-                // Is close enough to deposit
-                this._creep.withdraw(collectionTarget, RESOURCE_ENERGY);
+            } else if (response === ERR_NOT_ENOUGH_ENERGY) {
+                // Pick a new container
                 this._controller.clearTaskTarget();
             }
-            this._creep.say("Withdrawing Energy ⚡");
         }
 
         return CustomActionResponse.ok;
+    }
+
+    public getContainerOrStorage(structId: string) {
+        return this._controller._roomState.structures.find(struct => struct.id === structId) as StructureContainer | StructureStorage;
     }
 }

@@ -34,6 +34,9 @@ export class BuilderCreepController extends CreepController {
                 super.setTask(CreepTasks.repairing);
                 this.modules.repair.repairStructures();
             }
+        } else {
+            // Creep needs energy
+            this.modules.transfer.retrieveEnergy();
         }
     }
 

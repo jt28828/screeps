@@ -19,7 +19,8 @@ export class RoomMemoryManager {
         if (this._damagedStructures === undefined) {
             // Lazily initialise
             this._damagedStructures =
-                this.room.memory.damagedStructureIds.map(id => Game.getObjectById(id) as Structure);
+                this.room.memory.damagedStructureIds.map(id => Game.getObjectById(id) as Structure)
+                    .filter(entity => entity != null);
         }
         return this._damagedStructures;
     }
@@ -27,7 +28,8 @@ export class RoomMemoryManager {
     public get enemies(): Creep[] {
         if (this._enemies === undefined) {
             this._enemies = this.room.memory.enemyIds
-                .map(id => (Game.getObjectById(id) as Creep));
+                .map(id => (Game.getObjectById(id) as Creep))
+                .filter(entity => entity != null);
         }
         return this._enemies;
     }
@@ -35,7 +37,8 @@ export class RoomMemoryManager {
     public get structures(): AnyStructure[] {
         if (this._allStructures === undefined) {
             this._allStructures = this.room.memory.structureIds
-                .map(id => (Game.getObjectById(id) as AnyStructure));
+                .map(id => (Game.getObjectById(id) as AnyStructure))
+                .filter(entity => entity != null);
         }
         return this._allStructures;
     }
@@ -43,7 +46,8 @@ export class RoomMemoryManager {
     public get myStructures(): AnyOwnedStructure[] {
         if (this._myStructures === undefined) {
             this._myStructures = this.room.memory.myStructureIds
-                .map(id => (Game.getObjectById(id) as AnyOwnedStructure));
+                .map(id => (Game.getObjectById(id) as AnyOwnedStructure))
+                .filter(entity => entity != null);
         }
         return this._myStructures;
     }
@@ -51,7 +55,8 @@ export class RoomMemoryManager {
     public get constructionSites(): ConstructionSite[] {
         if (this._constructionSites === undefined) {
             this._constructionSites = this.room.memory.constructionSiteIds
-                .map(id => (Game.getObjectById(id) as ConstructionSite));
+                .map(id => (Game.getObjectById(id) as ConstructionSite))
+                .filter(entity => entity != null);
         }
         return this._constructionSites;
     }

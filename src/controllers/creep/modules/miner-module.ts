@@ -9,7 +9,7 @@ export class MinerModule extends CreepControllerModule {
         if (!this.creepHasMiningTarget()) {
             const newTarget = this.getNewMiningTarget();
             if (newTarget == null) {
-                // Couldn't find a source and creep has killed itself.
+                // Couldn't find a source
                 return;
             }
             source = newTarget;
@@ -26,8 +26,6 @@ export class MinerModule extends CreepControllerModule {
             // Needs to move closer
             this._controller.moveTo(source.pos);
         }
-
-        this._creep.say("Collecting Energy ⛏");
     }
 
     /** Returns whether the current creep has selected an energy storage target for collection or depositing */
@@ -56,33 +54,6 @@ export class MinerModule extends CreepControllerModule {
         }
 
         this._creep.memory.currentTaskTargetId = closestSource.id;
-
-        if (this._controller._roomState.room.memory.sourceMiners[closestSource.id] === undefined) {
-            // First miner assigned to this source
-            this._controller._roomState.room.memory.sourceMiners[closestSource.id] = [];
-        }
-
-        const sourceMinerList = this._controller._roomState.room.memory.sourceMiners[closestSource.id];
-        if (sourceMinerList.length < 2) {
-            // Only 2 miners per source allowed max
-            sourceMinerList.push(this._creep.id);
-        } else {
-            // Source is already full, check to see if the creeps are dead or not, if so take their place
-            const aliveMinerIds = this._controller._roomState.myCreeps
-                .filter(creep => sourceMinerList.includes(creep.id))
-                .map(creep => creep.id);
-
-            if (aliveMinerIds.length < 2) {
-                // A miner is dead. Remove them
-                const index = sourceMinerList.findIndex(minerId => aliveMinerIds.includes(minerId));
-
-                if (index !== -1) {
-                    this._controller._roomState.room.memory.sourceMiners[closestSource.id].splice(index, 1);
-                }
-            }
-            return this.getNewMiningTarget(closestSource.id);
-        }
-
         return closestSource;
     }
 }

@@ -43,24 +43,34 @@ export class AllRounderCreepController extends CreepController {
             // Continue upgrading / travelling to controller
             this.modules.upgrade.upgradeController();
         } else if (this.creepIsFull()) {
-            if (this.modules.build.roomHasConstructionSites()) {
-                // Try building
-                super.setTask(CreepTasks.building);
-                this.modules.build.buildConstructionSite();
-            } else {
-                // Upgrade instead
-                super.setTask(CreepTasks.upgrading);
-                this.modules.upgrade.upgradeController();
-            }
+            this.getNewTaskForCreep();
         } else {
             // Retrieve energy from the closest storage
             super.setTask(CreepTasks.collectingEnergy);
-            const retrieveSucceeded = (this.modules.transfer.retrieveEnergy() !== CustomActionResponse.ok);
+            const retrieveSucceeded = (this.modules.transfer.retrieveEnergy() === CustomActionResponse.ok);
 
             if (!retrieveSucceeded) {
                 // Mine for more energy
                 super.setTask(CreepTasks.mining);
                 this.modules.mine.mineForEnergy();
+            }
+        }
+    }
+
+    /** Called when a cree is full of energy and needs something do do with it */
+    private getNewTaskForCreep() {
+        if (this.modules.build.roomHasConstructionSites()) {
+            // Try building
+            super.setTask(CreepTasks.building);
+            this.modules.build.buildConstructionSite();
+        } else {
+            // Try filling spawn energy
+            const response = this.modules.fill.fillClosest();
+
+            if (response !== CustomActionResponse.ok) {
+                // Upgrade instead
+                super.setTask(CreepTasks.upgrading);
+                this.modules.upgrade.upgradeController();
             }
         }
     }

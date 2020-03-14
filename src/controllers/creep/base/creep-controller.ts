@@ -46,7 +46,7 @@ export abstract class CreepController<TCreepType extends Creep = Creep> {
 
     /** Returns whether the current creep has selected an energy storage target for collection or depositing */
     public creepHasEnergyTarget() {
-        return this.memory.currentTask === CreepTasks.collectingEnergy || this.memory.currentTask === CreepTasks.depositingEnergy && this._creep.memory.currentTaskTargetId !== undefined;
+        return this._creep.memory.currentTaskTargetId !== undefined && (this.memory.currentTask === CreepTasks.collectingEnergy || this.memory.currentTask === CreepTasks.depositingEnergy);
     }
 
     /** Used by creeps that use energy for their tasks (All except miners) */
@@ -123,5 +123,8 @@ export abstract class CreepController<TCreepType extends Creep = Creep> {
 
     public creepIsFull(): boolean {
         return this._creep.carry.energy === this._creep.carryCapacity;
+    }
+    public creepIsEmpty(): boolean {
+        return this._creep.carry.energy === 0;
     }
 }

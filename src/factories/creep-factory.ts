@@ -2,16 +2,12 @@
 import { CreepRole } from "../enums/creep-role";
 import { ICreepGenerationData } from "../models/interfaces/creep-generation-data";
 
-const partCosts = {
-    [WORK]: 100,
-    [CARRY]: 50,
-    [MOVE]: 50
-};
-
 export class CreepFactory {
     /** Returns the data required to get the game to generate a creep */
     public static generateCreep(type: CreepRole, room: Room): ICreepGenerationData {
         switch (type) {
+            case CreepRole.transporter:
+                return this.generateTransporter(room);
             case CreepRole.upgrader:
                 return this.generateUpgrader(room);
             case CreepRole.builder:
@@ -29,10 +25,26 @@ export class CreepFactory {
      * Costs 250 energy for each
      */
     private static generateAllRounder(): ICreepGenerationData {
-        const memory = this.generateMemory(CreepRole.upgrader);
+        const memory = this.generateMemory(CreepRole.allRounder);
         const name = `MASTER-OF-NONE-${Game.time.toString()}`;
         const bodyParts: BodyPartConstant[] = [WORK, CARRY, CARRY, MOVE];
 
+        return {
+            bodyParts,
+            name,
+            spawnOptions: {memory},
+        };
+    }
+
+    /***
+     * Creates a new transporter creep
+     */
+    private static generateTransporter(room: Room): ICreepGenerationData {
+        const memory = this.generateMemory(CreepRole.transporter);
+        const name = `LIFT-THE-FEELS-AWAY-${Game.time.toString()}`;
+
+        // Don't need WORK parts at all
+        const bodyParts = this.generateMaxLeftoverParts(room.energyAvailable);
         return {
             bodyParts,
             name,
@@ -46,9 +58,10 @@ export class CreepFactory {
     private static generateUpgrader(room: Room): ICreepGenerationData {
         const memory = this.generateMemory(CreepRole.upgrader);
         const name = `HARDER-BETTER-FASTER-${Game.time.toString()}`;
+        const defaultParts: BodyPartConstant[] = [WORK];
 
-        // Don't need WORK parts at all
-        const bodyParts = this.generateMaxLeftoverParts(room.energyAvailable);
+        // Needs a single WORK part
+        const bodyParts = [...defaultParts, ...this.generateMaxLeftoverParts(room.energyAvailable - BODYPART_COST[WORK])];
         return {
             bodyParts,
             name,
@@ -64,17 +77,17 @@ export class CreepFactory {
         const name = `IM-ON-SMOKO-${Game.time.toString()}`;
 
         // Builders need at least 1 work part and 2 other parts to support it
-        const workParts: BodyPartConstant[] = [WORK];
+        const workParts: BodyPartConstant[] = [WORK, CARRY];
 
-        const layerCosts = partCosts[CARRY] + partCosts[MOVE];
+        const layerCosts = BODYPART_COST[CARRY] + BODYPART_COST[MOVE];
 
         let currentBudget = layerCosts;
-        let leftoverEnergy = room.energyAvailable - partCosts[WORK];
+        let leftoverEnergy = room.energyAvailable - (BODYPART_COST[WORK] + BODYPART_COST[CARRY]);
         while (leftoverEnergy >= currentBudget) {
             // Add as many work parts as possible to the builder so it can build faster
             workParts.push(WORK);
             currentBudget += layerCosts;
-            leftoverEnergy -= partCosts[WORK];
+            leftoverEnergy -= BODYPART_COST[WORK];
         }
 
         const bodyParts = [...workParts, ...this.generateMaxLeftoverParts(leftoverEnergy)];
@@ -96,16 +109,15 @@ export class CreepFactory {
         const bodyParts: (WORK | MOVE)[] = [WORK, WORK, MOVE, MOVE];
 
         let minerCost = bodyParts
-            .map(part => partCosts[part])
+            .map(part => BODYPART_COST[part])
             .reduce((prev, current) => prev + current);
 
 
         while (room.energyAvailable >= minerCost && bodyParts.length < 7) {
             // A creep with 5 WORK parts should be able to empty out a source each regen
             bodyParts.push(WORK);
-            minerCost += partCosts[WORK];
+            minerCost += BODYPART_COST[WORK];
         }
-
 
         return {
             bodyParts,
@@ -119,7 +131,7 @@ export class CreepFactory {
      * Parts can be added before this to customise a creep
      * */
     private static generateMaxLeftoverParts(energyBudget: number): BodyPartConstant[] {
-        const layerCost = partCosts[MOVE] + partCosts[CARRY];
+        const layerCost = BODYPART_COST[MOVE] + BODYPART_COST[CARRY];
         let energyLeft = energyBudget;
         let bodyParts: BodyPartConstant[] = [];
         while (energyLeft >= 100) {
