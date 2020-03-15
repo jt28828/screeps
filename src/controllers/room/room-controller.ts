@@ -65,7 +65,7 @@ export class RoomController {
         if (this._room.memory.roomStatus === RoomStatus.owned) {
             // Only build in owned rooms
             new TownPlanner(this._room, this._roomFlags).control();
-            this.calculateRoomLevel();
+            this._roomState.countRoomSources().calculateRoomLevel();
         }
     }
 
@@ -141,22 +141,6 @@ export class RoomController {
         for (let i = 0; i < spawnCount; i++) {
             // Command a spawn to perform an action if applicable
             new SpawnController(spawns[i] as StructureSpawn, this._roomState).spawn();
-        }
-    }
-
-    /** Figures out the custom level of the room, used to perform different actions depending on how well a room is going */
-    private calculateRoomLevel() {
-        const roomExtensions = this._roomState.myStructures.filter(struct => struct.structureType === STRUCTURE_EXTENSION);
-
-        if (roomExtensions.length < 2 || this._room.energyAvailable < 500) {
-            // Room has less than 2 extensions or is running low on energy, reset to level 0
-            this._room.memory.currentLevel = RoomLevels.starter;
-        } else if (this._room.memory.sourceCount < 2) {
-            // Room has more than 2 extensions filled, but is only a 1 source room, upgrade to level 1
-            this._room.memory.currentLevel = RoomLevels.hasEnergy;
-        } else {
-            // Room has more than 2 extensions and 2 sources upgrade to level 2
-            this._room.memory.currentLevel = RoomLevels.hasEnergyAndMultipleSources;
         }
     }
 

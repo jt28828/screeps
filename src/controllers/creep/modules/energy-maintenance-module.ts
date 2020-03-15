@@ -51,12 +51,14 @@ export class EnergyMaintenanceModule extends CreepControllerModule {
 
     /** Returns the closest tower to the current creep as a new target. Tower must NOT be full of energy */
     private getNewNonFullTowerTarget(): StructureTower | null {
-        const towers = this._controller._roomState.myStructures
+        const towers = (this._controller._roomState.myStructures
             .filter(struct =>
                 struct.structureType === STRUCTURE_TOWER && !StorageUtils.energyIsFull(struct)
-            ) as StructureTower[];
+            ) as StructureTower[])
+            .sort((tower1, tower2) => tower1.store.energy - tower2.store.energy);
 
-        return this._controller.findClosest(towers);
+        // Instead of finding the closest tower, find the tower with the least energy to spread it around
+        return towers[0];
     }
 
     private getTower(towerId: string): StructureTower | null {
