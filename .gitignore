@@ -1,3 +1,4 @@
 node_modules
 ts-dist
 .idea
+dist/main.js
