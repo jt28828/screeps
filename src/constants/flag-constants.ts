@@ -23,3 +23,5 @@ export const groupBuildingFlags: ReadonlyArray<GroupBuildingFlags> = [
     "road-group",
     "tower-group",
 ];
+
+export const priorityBuildFlag = "priorityBuild";

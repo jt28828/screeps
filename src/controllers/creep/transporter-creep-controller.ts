@@ -21,6 +21,9 @@ export class TransporterCreepController extends CreepController {
 
     public control(): void {
         switch (this.memory.currentTask) {
+            case CreepTasks.pickingUpDroppedEnergy: // Continue collecting / travelling to dropped energy
+                this.modules.transfer.pickupDroppedEnergy();
+                break;
             case CreepTasks.collectingEnergy:
                 this.modules.transfer.retrieveEnergy();
                 break;
@@ -67,7 +70,19 @@ export class TransporterCreepController extends CreepController {
                 }
             }
         } else {
-            this.setTask(CreepTasks.collectingEnergy);
+            this.pickupOrCollect();
+        }
+    }
+
+
+    /** Either picks up dropped energy, or collect energy from a container in that order of preference */
+    private pickupOrCollect() {
+        // Retrieve energy from the closest droppped energy pile
+        super.setTask(CreepTasks.pickingUpDroppedEnergy);
+        const pickupSucceeded = (this.modules.transfer.pickupDroppedEnergy() === CustomActionResponse.ok);
+
+        if (!pickupSucceeded) {
+            super.setTask(CreepTasks.collectingEnergy);
             this.modules.transfer.retrieveEnergy();
         }
     }

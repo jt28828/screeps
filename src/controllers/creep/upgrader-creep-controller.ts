@@ -18,6 +18,9 @@ export class UpgraderCreepController extends CreepController {
 
     public control(): void {
         switch (super.memory.currentTask) {
+            case CreepTasks.pickingUpDroppedEnergy: // Continue collecting / travelling to dropped energy
+                this.modules.transfer.pickupDroppedEnergy();
+                break;
             case CreepTasks.collectingEnergy: // Collect energy
                 this.modules.transfer.retrieveEnergy();
                 break;

@@ -16,6 +16,7 @@ declare global {
         currentLevel: RoomLevels,
         sourceCount: number,
         damagedStructureIds: Id<Structure>[];
+        droppedEnergyIds: Id<Resource>[];
         enemyIds: Id<Creep>[];
         structureIds: Id<Structure>[];
         myStructureIds: Id<AnyOwnedStructure>[];

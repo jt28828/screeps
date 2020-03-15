@@ -7,5 +7,6 @@ export const enum CreepTasks {
     upgrading,
     fillingSpawns,
     maintaining,
-    transporting
+    transporting,
+    pickingUpDroppedEnergy
 }

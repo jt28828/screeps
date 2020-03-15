@@ -43,6 +43,7 @@ export class RoomController {
             currentLevel: RoomLevels.starter,
             sourceCount: 1,
             damagedStructureIds: [],
+            droppedEnergyIds: [],
             enemyIds: [],
             structureIds: [],
             myStructureIds: [],

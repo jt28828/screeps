@@ -12,6 +12,7 @@ export class RoomMemoryManager {
     private _myStructures?: AnyOwnedStructure[];
     private _constructionSites?: ConstructionSite[];
     private _myCreeps?: Creep[];
+    private _droppedEnergy?: Resource[];
 
     public roomStatus: RoomStatus;
 
@@ -68,6 +69,14 @@ export class RoomMemoryManager {
         return this._myCreeps;
     }
 
+    public get droppedEnergy(): Resource[] {
+        if (this._droppedEnergy === undefined) {
+            this._droppedEnergy = this.room.find(FIND_DROPPED_RESOURCES)
+                .filter(dropPoint => dropPoint.resourceType === RESOURCE_ENERGY && dropPoint.amount > 100);
+        }
+        return this._droppedEnergy;
+    }
+
     constructor(room: Room) {
         this.room = room;
         this.roomStatus = this.room.memory.roomStatus;
@@ -78,6 +87,10 @@ export class RoomMemoryManager {
         const allStructures = this.room.find(FIND_STRUCTURES);
         const myStructures = this.room.find(FIND_MY_STRUCTURES);
         const constructionSites = this.room.find(FIND_CONSTRUCTION_SITES);
+        // Dropped energy needs to be more than 150 to be worth navigating to collect
+        const droppedEnergy = this.room.find(FIND_DROPPED_RESOURCES)
+            .filter(dropPoint => dropPoint.resourceType === RESOURCE_ENERGY && dropPoint.amount > 150);
+
         const enemies = this.room.find(FIND_HOSTILE_CREEPS)
             .filter(creep => allyUsernames.indexOf(creep.owner.username) === -1)
             .sort((a, b) => a.hits - b.hits);
@@ -94,6 +107,7 @@ export class RoomMemoryManager {
         this._allStructures = allStructures;
         this._myStructures = myStructures;
         this._constructionSites = constructionSites;
+        this._droppedEnergy = droppedEnergy;
         this.roomStatus = (roomIsOwned) ? RoomStatus.owned : RoomStatus.unclaimed;
 
         // Finally Create the new room state object from the retrieved values. and return
@@ -107,6 +121,7 @@ export class RoomMemoryManager {
         this.room.memory.structureIds = this._allStructures?.map(x => x.id) ?? [];
         this.room.memory.myStructureIds = this._myStructures?.map(x => x.id) ?? [];
         this.room.memory.constructionSiteIds = this._constructionSites?.map(site => site.id) ?? [];
+        this.room.memory.droppedEnergyIds = this._droppedEnergy?.map(dropSite => dropSite.id) ?? [];
         this.room.memory.roomStatus = this.roomStatus;
         return this;
     }

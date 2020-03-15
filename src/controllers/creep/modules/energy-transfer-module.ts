@@ -37,12 +37,12 @@ export class EnergyTransferModule extends CreepControllerModule {
      */
     public retrieveEnergy(fillingStorage: boolean = false): CustomActionResponse {
         let collectionTarget: EnergyStructures;
-        if (!this._controller.creepHasEnergyTarget()) {
+        if (this._creep.memory.currentTaskTargetId === undefined) {
             // Get a target first
             const newTarget = this.getNewNonEmptyEnergyTarget(fillingStorage);
 
             if (newTarget == null) {
-                // Couldn't retrieve a target
+                // Couldn't retrieve a target. No viable sources of energy in this room
                 this._controller.clearTask();
                 return CustomActionResponse.noEntitiesPresent;
             }
@@ -51,7 +51,7 @@ export class EnergyTransferModule extends CreepControllerModule {
             this._creep.memory.currentTaskTargetId = collectionTarget.id;
         } else {
             // Creep already has a target. Retrieve it
-            const retrievedTarget = this.getContainerOrStorage(this._creep.memory.currentTaskTargetId as string);
+            const retrievedTarget = this.getContainerOrStorage(this._creep.memory.currentTaskTargetId);
 
             if (retrievedTarget == null) {
                 // Target may have been destroyed Remove the reference from memory and skip this turn.
@@ -79,8 +79,53 @@ export class EnergyTransferModule extends CreepControllerModule {
         return CustomActionResponse.ok;
     }
 
+    public pickupDroppedEnergy(): CustomActionResponse {
+        let pickupTarget: Resource;
+        if (this._creep.memory.currentTaskTargetId === undefined) {
+            // Get a target first
+            const newTarget = this.getNewDroppedEnergyTarget();
+
+            if (newTarget == null) {
+                // Couldn't retrieve a target. No viable sources of energy in this room
+                this._controller.clearTask();
+                return CustomActionResponse.noEntitiesPresent;
+            }
+            // Dropped energy was found, set it in memory
+            pickupTarget = newTarget;
+            this._creep.memory.currentTaskTargetId = pickupTarget.id;
+        } else {
+            // Creep already has a target. Retrieve it
+            const retrievedTarget = this.getDroppedEnergyReference(this._creep.memory.currentTaskTargetId);
+
+            if (retrievedTarget == null) {
+                // Target may have been destroyed Remove the reference from memory and skip this turn.
+                this._controller.clearTaskTarget();
+                return CustomActionResponse.ok;
+            }
+            pickupTarget = retrievedTarget;
+        }
+
+        // At this point creep has a valid target, attempt energy withdrawal or travel
+        const response = this._creep.pickup(pickupTarget);
+
+        if (response === ERR_NOT_IN_RANGE) {
+            // Needs to move closer
+            this._controller.moveTo(pickupTarget.pos);
+        } else if (response === ERR_FULL) {
+            // Clear the task for the creep so they can use the energy for something else
+            this._controller.clearTask();
+            return CustomActionResponse.creepNotValid;
+        }
+
+        return CustomActionResponse.ok;
+    }
+
     private getContainerOrStorage(structId: string) {
-        return this._controller._roomState.structures.find(struct => struct.id === structId) as StructureContainer | StructureStorage;
+        return this._controller._roomState.structures.find(struct => struct.id === structId) as EnergyStructures;
+    }
+
+    private getDroppedEnergyReference(entityId: string) {
+        return this._controller._roomState.droppedEnergy.find(entity => entity.id === entityId);
     }
 
     /** Finds the closest source of stored energy to the current creep and saves it to the creeps memory */
@@ -110,7 +155,6 @@ export class EnergyTransferModule extends CreepControllerModule {
         return foundStructure;
     }
 
-
     /** Finds the storage in the current room that isn't full of energy. Null if full */
     private getNonFullStorage(): StructureStorage | undefined {
         let returnValue = this._controller._roomState.room.storage;
@@ -122,5 +166,10 @@ export class EnergyTransferModule extends CreepControllerModule {
 
         // Get the closest to the current position
         return returnValue;
+    }
+
+    /** Returns the closest source of dropped energy */
+    private getNewDroppedEnergyTarget() {
+        return this._controller.findClosest(this._controller._roomState.droppedEnergy);
     }
 }
