@@ -7,8 +7,8 @@ export class StorageUtils {
         return storageEntity.store.energy === 0;
     }
 
-    public static energyIsFull<T extends { energy: number, energyCapacity: number }>(storageEntity: T) {
-        return storageEntity.energy === storageEntity.energyCapacity;
+    public static energyIsFull<T extends { store: Store<RESOURCE_ENERGY, false> }>(storageEntity: T) {
+        return storageEntity.store.energy === storageEntity.store.getCapacity();
     }
 
     public static energyIsEmpty<T extends { energy: number, energyCapacity: number }>(storageEntity: T) {

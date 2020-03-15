@@ -77,12 +77,12 @@ export class CreepFactory {
         const name = `IM-ON-SMOKO-${Game.time.toString()}`;
 
         // Builders need at least 1 work part and 2 other parts to support it
-        const workParts: BodyPartConstant[] = [WORK, CARRY];
+        const workParts: BodyPartConstant[] = [WORK, CARRY, MOVE];
 
         const layerCosts = BODYPART_COST[CARRY] + BODYPART_COST[MOVE];
 
         let currentBudget = layerCosts;
-        let leftoverEnergy = room.energyAvailable - (BODYPART_COST[WORK] + BODYPART_COST[CARRY]);
+        let leftoverEnergy = room.energyAvailable - (BODYPART_COST[WORK] + BODYPART_COST[CARRY] + BODYPART_COST[MOVE]);
         while (leftoverEnergy >= currentBudget) {
             // Add as many work parts as possible to the builder so it can build faster
             workParts.push(WORK);

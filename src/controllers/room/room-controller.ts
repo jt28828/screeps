@@ -77,12 +77,15 @@ export class RoomController {
     }
 
     private controlCreeps() {
-        const myCreeps = this._roomState?.myCreeps;
+        const myCreeps = this._roomState.myCreeps;
+        const roomExtensions = this._roomState.myStructures
+            .filter(struct => struct.structureType === STRUCTURE_EXTENSION);
+
         myCreeps.forEach((creep) => {
             let controller: CreepController | undefined;
             switch (creep.memory.currentRole) {
                 case CreepRole.allRounder:
-                    controller = new AllRounderCreepController(this._roomState, creep);
+                    controller = new AllRounderCreepController(this._roomState, creep, roomExtensions.length > 2);
                     break;
                 case CreepRole.miner:
                     controller = new MinerCreepController(this._roomState, creep);
@@ -144,7 +147,7 @@ export class RoomController {
     private calculateRoomLevel() {
         const roomExtensions = this._roomState.myStructures.filter(struct => struct.structureType === STRUCTURE_EXTENSION);
 
-        if (roomExtensions.length < 2 || this._room.energyAvailable < 300) {
+        if (roomExtensions.length < 2 || this._room.energyAvailable < 350) {
             // Room has less than 2 extensions or is running low on energy, reset to level 0
             this._room.memory.currentLevel = RoomLevels.starter;
         } else if (this._room.memory.sourceCount < 2) {

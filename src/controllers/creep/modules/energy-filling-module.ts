@@ -32,9 +32,11 @@ export class EnergyFillingModule extends CreepControllerModule {
 
         if (response === ERR_NOT_IN_RANGE) {
             this._controller.moveTo(target.pos);
-        } else if (response === ERR_NOT_ENOUGH_ENERGY || response === ERR_FULL || this._controller.creepIsEmpty()) {
+        } else if (response === ERR_NOT_ENOUGH_ENERGY) {
             this._controller.clearTask();
             return CustomActionResponse.creepNotValid;
+        }else if (response === ERR_FULL) {
+            this._controller.clearTaskTarget();
         } else {
             // Succeeded, if the creep has no energy left, reset task, else just reset target
             this._controller.clearTaskTarget();

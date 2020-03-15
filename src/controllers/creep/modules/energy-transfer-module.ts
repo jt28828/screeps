@@ -35,11 +35,11 @@ export class EnergyTransferModule extends CreepControllerModule {
      * Retrieves stored energy from the closest energy storage
      * Can be sent a boolean to indicate energy should only be collected from containers
      */
-    public retrieveEnergy(notFromStorage: boolean = false): CustomActionResponse {
+    public retrieveEnergy(fillingStorage: boolean = false): CustomActionResponse {
         let collectionTarget: EnergyStructures;
         if (!this._controller.creepHasEnergyTarget()) {
             // Get a target first
-            const newTarget = this.getNewNonEmptyEnergyTarget(notFromStorage);
+            const newTarget = this.getNewNonEmptyEnergyTarget(fillingStorage);
 
             if (newTarget == null) {
                 // Couldn't retrieve a target
@@ -84,12 +84,12 @@ export class EnergyTransferModule extends CreepControllerModule {
     }
 
     /** Finds the closest source of stored energy to the current creep and saves it to the creeps memory */
-    private getNewNonEmptyEnergyTarget(notFromStorage: boolean = false): EnergyStructures | null {
+    private getNewNonEmptyEnergyTarget(fillingStorage: boolean = false): EnergyStructures | null {
         // No energy collection target set yet. Get one first
 
         const energyTargets = this._controller._roomState.structures.filter((struct) => {
                 let matches: boolean;
-                if (notFromStorage) {
+                if (fillingStorage) {
                     matches = struct.structureType === STRUCTURE_CONTAINER && !StorageUtils.storeIsEmpty(struct);
                 } else {
                     matches = (struct.structureType === STRUCTURE_CONTAINER || struct.structureType === STRUCTURE_STORAGE) && !StorageUtils.storeIsEmpty(struct);
@@ -98,8 +98,16 @@ export class EnergyTransferModule extends CreepControllerModule {
             }
         ) as EnergyStructures[];
 
-        // Get the closest to the current position
-        return this._creep.pos.findClosestByPath(energyTargets);
+        // Get the closest to the current position or the most full if transporting to the central storage
+        let foundStructure: EnergyStructures | null;
+        if (fillingStorage) {
+            // Find the most full
+            foundStructure = energyTargets
+                .sort((structA, structB) => structB.store.energy - structA.store.energy)[0];
+        } else {
+            foundStructure = this._creep.pos.findClosestByPath(energyTargets);
+        }
+        return foundStructure;
     }
 
 

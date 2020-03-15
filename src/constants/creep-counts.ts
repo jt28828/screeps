@@ -28,7 +28,7 @@ export const maxCreepCounts: creepCountType = {
     [RoomLevels.hasEnergyAndMultipleSources]: {
         allRounder: 0,
         miner: 2,
-        transporter: 1,
+        transporter: 2,
         upgrader: 1,
         builder: 1,
         claimer: 0,

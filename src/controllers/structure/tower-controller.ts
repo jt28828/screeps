@@ -23,12 +23,11 @@ export class TowerController {
             return;
         }
 
-        if (this._tower.energy / this._tower.energyCapacity >= 0.5) {
+        const energyPercentage = (this._tower.store.energy / this._tower.store.getCapacity(RESOURCE_ENERGY));
+
+        if (energyPercentage >= 0.5 && this._roomState.damagedStructures.length > 0) {
             // Only heal if the tower has more than half its energy capacity in storage
-            if (this._roomState.damagedStructures != null && this._roomState.damagedStructures.length > 1) {
-                // Heal Structures
-                this.healStructure();
-            }
+            this.healStructure();
         }
         // No enemies, damage or injuries. Let the tower rest
     }

@@ -15,11 +15,11 @@ declare global {
         roomStatus: RoomStatus;
         currentLevel: RoomLevels,
         sourceCount: number,
-        damagedStructureIds: string[];
-        enemyIds: string[];
-        structureIds: string[];
-        myStructureIds: string[];
-        constructionSiteIds: string[];
-        sourceIds: string[];
+        damagedStructureIds: Id<Structure>[];
+        enemyIds: Id<Creep>[];
+        structureIds: Id<Structure>[];
+        myStructureIds: Id<AnyOwnedStructure>[];
+        constructionSiteIds: Id<ConstructionSite>[];
+        sourceIds: Id<Source>[];
     }
 }

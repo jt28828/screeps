@@ -25,7 +25,7 @@ export class MinerModule extends CreepControllerModule {
             this._creep.memory.currentTaskTargetId = source.id;
         } else {
             // Source's can't be deleted so force type as it'll always return the source, not null
-            source = Game.getObjectById(this._creep.memory.currentTaskTargetId as Id<Source>) as Source;
+            source = Game.getObjectById(this._creep.memory.currentTaskTargetId as string) as Source;
         }
 
         const response = this._creep.harvest(source);
