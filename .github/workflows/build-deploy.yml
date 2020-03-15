@@ -25,3 +25,18 @@ jobs:
           name: main
           # Directory containing files to upload
           path: dist/main.js
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    name: Deploy code to screeps
+    steps:
+      - name: Download build file
+        uses: actions/download-artifact@v1
+        with:
+          name: main
+      - name: Screeps Deployer
+        uses: aphistic/screeps-deployer@v0.1.0
+        env:
+          SCREEPS_TOKEN: ${{secrets.SCREEPS_TOKEN}}
+          GITHUB_WORKSPACE: dist/
