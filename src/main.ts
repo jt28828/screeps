@@ -8,8 +8,7 @@ function initialiseScript() {
     // Initialise Memory
     MemoryManager.initialise();
     runOccasionalTasks();
-    // @ts-ignore
-    console.log(`Script updated: Now running ${VERSION}`);
+    console.log(`Script updated: Now running ${VERSION}. Built on ${BUILD_DATE}`);
 }
 
 /** The loop function called by the game once every tick. Assigns commands to everything */

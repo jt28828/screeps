@@ -41,7 +41,7 @@ export class CreepFactory {
      */
     private static generateTransporter(room: Room): ICreepGenerationData {
         const memory = this.generateMemory(CreepRole.transporter);
-        const name = `LIFT-THE-FEELS-AWAY-${Game.time.toString()}`;
+        const name = `STATHAM-${Game.time.toString()}`;
 
         // Don't need WORK parts at all
         const bodyParts = this.generateMaxLeftoverParts(room.energyAvailable);

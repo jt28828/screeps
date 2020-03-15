@@ -43,7 +43,7 @@ export class EnergyMaintenanceModule extends CreepControllerModule {
             this._controller.clearTaskTarget();
         } else if (response === ERR_NOT_ENOUGH_ENERGY) {
             // Creep is out of energy and needs to restock
-            this._controller.clearTaskTarget();
+            this._controller.clearTask();
             return CustomActionResponse.creepNotValid;
         }
         return CustomActionResponse.ok;

@@ -148,7 +148,7 @@ export class RoomController {
     private calculateRoomLevel() {
         const roomExtensions = this._roomState.myStructures.filter(struct => struct.structureType === STRUCTURE_EXTENSION);
 
-        if (roomExtensions.length < 2 || this._room.energyAvailable < 350) {
+        if (roomExtensions.length < 2 || this._room.energyAvailable < 500) {
             // Room has less than 2 extensions or is running low on energy, reset to level 0
             this._room.memory.currentLevel = RoomLevels.starter;
         } else if (this._room.memory.sourceCount < 2) {

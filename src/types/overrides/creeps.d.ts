@@ -7,10 +7,20 @@ declare global {
         currentRole: CreepRole,
         stuckCounter: number;
         currentTask?: CreepTasks;
-        currentTaskTargetId?: string;
+        currentTaskTargetId?: Id<any>;
     }
 
-// ============================================================
-// Creep Specializations (Only difference is memory properties)
-// ============================================================
+    /**
+     * ==================================
+     *      Specialized creep memory
+     * ==================================
+     */
+
+    interface MinerCreep extends Creep {
+        memory: MinerCreepMemory;
+    }
+
+    interface MinerCreepMemory extends CreepMemory {
+        containerTargetId?: Id<StructureContainer>;
+    }
 }
