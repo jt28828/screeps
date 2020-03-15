@@ -1,82 +1,118 @@
 import { CreepControllerModule } from "./base/creep-controller-module";
 import { CustomActionResponse } from "../../../enums/custom-action-response";
+import { StorageUtils } from "../../../utilities/storage-utils";
 
 /** Adds the ability for a creep to deposit and retrieve energy from containers */
 export class EnergyTransferModule extends CreepControllerModule {
-    /** Deposits carried energy into the closest energy storage */
-    public depositEnergy(): CustomActionResponse {
-        let newTarget: string | undefined;
-        if (!this._controller.creepHasEnergyTarget()) {
-            // Get a target first
-            newTarget = this._controller.getNewEnergyTarget();
-        }
+    /** Deposits carried energy into the closest storage */
+    public depositToStorage(): CustomActionResponse {
 
-        if (newTarget === undefined) {
-            // Couldn't retrieve a target
+        // Only one storage per room so don't need to do multiple checks
+        const storage = this.getNonFullStorage();
+
+        if (storage === undefined) {
+            // Storage not present or is full
+            this._controller.clearTask();
             return CustomActionResponse.noEntitiesPresent;
         }
 
-        const collectionTarget = Game.getObjectById<StructureContainer | StructureStorage>(this._creep.memory.currentTaskTargetId);
+        // Attempt to deposit energy in storage
+        const response = this._creep.transfer(storage, RESOURCE_ENERGY);
 
-        if (collectionTarget == null) {
-            // Somehow the target was deleted since the last turn. Remove the reference from memory and try again
-            this._controller.clearTaskTarget();
-            return this.depositEnergy();
-        }
-
-        if (collectionTarget.store.energy === collectionTarget.storeCapacity) {
-            // Storage is full, don't move to another as creep is slow, just dump energy and mine again
-            this._controller.clearTaskTarget();
-            this._creep.drop(RESOURCE_ENERGY);
-        } else {
-            if (!this._creep.pos.inRangeTo(collectionTarget.pos, 1)) {
-                // Needs to move closer
-                this._controller.moveTo(collectionTarget.pos);
-            } else {
-                // Is close enough to deposit
-                this._creep.transfer(collectionTarget, RESOURCE_ENERGY);
-                this._controller.clearTaskTarget();
-            }
-            this._creep.say("Depositing Energy ⚡");
+        if (response === ERR_NOT_IN_RANGE) {
+            // Not close enough yet
+            this._controller.moveTo(storage.pos);
+        } else if (response === ERR_NOT_ENOUGH_ENERGY) {
+            // Creep has no energy, clear task
+            this._controller.clearTask();
+            return CustomActionResponse.creepNotValid;
         }
         return CustomActionResponse.ok;
     }
 
 
-    /** Retrieves stored energy from the closest energy storage */
-    public retrieveEnergy(): CustomActionResponse {
-        let newTarget: string | undefined;
+    /**
+     * Retrieves stored energy from the closest energy storage
+     * Can be sent a boolean to indicate energy should only be collected from containers
+     */
+    public retrieveEnergy(notFromStorage: boolean = false): CustomActionResponse {
+        let collectionTarget: EnergyStructures;
         if (!this._controller.creepHasEnergyTarget()) {
             // Get a target first
-            newTarget = this._controller.getNewEnergyTarget(true);
+            const newTarget = this.getNewNonEmptyEnergyTarget(notFromStorage);
 
-            if (newTarget === undefined) {
+            if (newTarget == null) {
                 // Couldn't retrieve a target
+                this._controller.clearTask();
                 return CustomActionResponse.noEntitiesPresent;
             }
+            // Storage was found, set it in memory
+            collectionTarget = newTarget;
+            this._creep.memory.currentTaskTargetId = collectionTarget.id;
+        } else {
+            // Creep already has a target. Retrieve it
+            const retrievedTarget = this.getContainerOrStorage(this._creep.memory.currentTaskTargetId as string);
+
+            if (retrievedTarget == null) {
+                // Target may have been destroyed Remove the reference from memory and skip this turn.
+                this._controller.clearTaskTarget();
+                return CustomActionResponse.ok;
+            }
+            collectionTarget = retrievedTarget;
         }
 
-        const collectionTarget = this.getContainerOrStorage(this._creep.memory.currentTaskTargetId as string);
+        // At this point creep has a valid target, attempt energy withdrawal or travel
+        const response = this._creep.withdraw(collectionTarget, RESOURCE_ENERGY);
 
-        if (collectionTarget == null) {
-            // Somehow the target was deleted since the last turn. Remove the reference from memory and skip this turn
+        if (response === ERR_NOT_IN_RANGE) {
+            // Needs to move closer
+            this._controller.moveTo(collectionTarget.pos);
+        } else if (response === ERR_NOT_ENOUGH_ENERGY) {
+            // Pick a new container
             this._controller.clearTaskTarget();
-        } else {
-            const response = this._creep.withdraw(collectionTarget, RESOURCE_ENERGY);
-
-            if (response === ERR_NOT_IN_RANGE) {
-                // Needs to move closer
-                this._controller.moveTo(collectionTarget.pos);
-            } else if (response === ERR_NOT_ENOUGH_ENERGY) {
-                // Pick a new container
-                this._controller.clearTaskTarget();
-            }
+        } else if (response === ERR_FULL) {
+            // Clear the task for the creep so they can use the energy for something else
+            this._controller.clearTask();
+            return CustomActionResponse.creepNotValid;
         }
 
         return CustomActionResponse.ok;
     }
 
-    public getContainerOrStorage(structId: string) {
+    private getContainerOrStorage(structId: string) {
         return this._controller._roomState.structures.find(struct => struct.id === structId) as StructureContainer | StructureStorage;
+    }
+
+    /** Finds the closest source of stored energy to the current creep and saves it to the creeps memory */
+    private getNewNonEmptyEnergyTarget(notFromStorage: boolean = false): EnergyStructures | null {
+        // No energy collection target set yet. Get one first
+
+        const energyTargets = this._controller._roomState.structures.filter((struct) => {
+                let matches: boolean;
+                if (notFromStorage) {
+                    matches = struct.structureType === STRUCTURE_CONTAINER && !StorageUtils.storeIsEmpty(struct);
+                } else {
+                    matches = (struct.structureType === STRUCTURE_CONTAINER || struct.structureType === STRUCTURE_STORAGE) && !StorageUtils.storeIsEmpty(struct);
+                }
+                return matches;
+            }
+        ) as EnergyStructures[];
+
+        // Get the closest to the current position
+        return this._creep.pos.findClosestByPath(energyTargets);
+    }
+
+
+    /** Finds the storage in the current room that isn't full of energy. Null if full */
+    private getNonFullStorage(): StructureStorage | undefined {
+        let returnValue = this._controller._roomState.room.storage;
+
+        if (returnValue !== undefined && StorageUtils.storeIsFull(returnValue)) {
+            // Storage exists but is full
+            returnValue = undefined;
+        }
+
+        // Get the closest to the current position
+        return returnValue;
     }
 }

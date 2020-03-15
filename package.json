@@ -12,7 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^12.12.28",
-    "@types/screeps": "^2.5.5",
+    "@types/screeps": "^3.0.0",
     "screeps-profiler": "^2.0.1"
   },
   "devDependencies": {

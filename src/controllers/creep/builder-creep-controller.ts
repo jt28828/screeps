@@ -20,11 +20,24 @@ export class BuilderCreepController extends CreepController {
     }
 
     public control(): void {
-        if (super.memory.currentTask === CreepTasks.repairing) {
-            this.modules.repair.repairStructures();
-        } else if (super.memory.currentTask === CreepTasks.building) {
-            this.modules.build.buildConstructionSite();
-        } else if (super.creepIsFull()) {
+        switch (super.memory.currentTask) {
+            case CreepTasks.collectingEnergy: // Collect Energy from containers
+                this.modules.transfer.retrieveEnergy();
+                break;
+            case CreepTasks.repairing: // Repair damaged buildings
+                this.modules.repair.repairStructures();
+                break;
+            case CreepTasks.building: // Build new buildings
+                this.modules.build.buildConstructionSite();
+                break;
+            default:
+                this.getNewTaskForCreep();
+                break;
+        }
+    }
+
+    protected getNewTaskForCreep() {
+        if (super.creepIsFull()) {
             // Start building or repairing
             super.setTask(CreepTasks.building);
             const response = this.modules.build.buildConstructionSite();
@@ -36,6 +49,7 @@ export class BuilderCreepController extends CreepController {
             }
         } else {
             // Creep needs energy
+            super.setTask(CreepTasks.collectingEnergy);
             this.modules.transfer.retrieveEnergy();
         }
     }

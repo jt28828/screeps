@@ -1,6 +1,7 @@
 import { RoomMemoryManager } from "../../../memory/room-memory-manager";
 import { CreepTasks } from "../../../enums/creep-tasks";
 import { CreepControllerModule } from "../modules/base/creep-controller-module";
+import { StorageUtils } from "../../../utilities/storage-utils";
 
 export abstract class CreepController<TCreepType extends Creep = Creep> {
     /** The state of the room the creep is currently in */
@@ -10,12 +11,14 @@ export abstract class CreepController<TCreepType extends Creep = Creep> {
 
     protected abstract modules: { [key: string]: CreepControllerModule };
 
-    constructor(roomState: RoomMemoryManager, creep: TCreepType) {
+    protected constructor(roomState: RoomMemoryManager, creep: TCreepType) {
         this._roomState = roomState;
         this._creep = creep;
     }
 
     public abstract control(): void;
+
+    protected abstract getNewTaskForCreep(): void;
 
     public get memory(): TCreepType["memory"] {
         return this._creep.memory;
@@ -49,52 +52,6 @@ export abstract class CreepController<TCreepType extends Creep = Creep> {
         return this._creep.memory.currentTaskTargetId !== undefined && (this.memory.currentTask === CreepTasks.collectingEnergy || this.memory.currentTask === CreepTasks.depositingEnergy);
     }
 
-    /** Used by creeps that use energy for their tasks (All except miners) */
-    public collectEnergy() {
-        // TODO store energy storage targets in Roomstate
-        if (!this.creepHasEnergyTarget()) {
-            // No energy collection target set yet. Get one first
-            this.getNewEnergyTarget();
-        }
-        const collectionTarget = Game.getObjectById<StructureContainer | StructureStorage>(this._creep.memory.currentTaskTargetId);
-
-        if (collectionTarget == null) {
-            // Somehow the target was deleted since the last turn. Remove the reference from memory and try this function again
-            this.clearTaskTarget();
-            this.collectEnergy();
-            return;
-        }
-
-        if (!this._creep.pos.inRangeTo(collectionTarget.pos, 1)) {
-            // Needs to move closer
-            this.moveTo(collectionTarget.pos);
-        } else {
-            // Is close enough to collect
-            this._creep.withdraw(collectionTarget, RESOURCE_ENERGY);
-            this.clearTaskTarget();
-        }
-    }
-
-    /** Finds the closest source of saved energy to the current creep and saves it to the creeps memory */
-    public getNewEnergyTarget(nonEmpty: boolean = false): string | undefined {
-        // No energy collection target set yet. Get one first
-        const energyTargets: AnyStructure[] = [];
-
-        this._roomState.structures.forEach((struct) => {
-            if (struct.structureType === STRUCTURE_CONTAINER || struct.structureType === STRUCTURE_STORAGE) {
-                if (nonEmpty && struct.store.energy !== 0) {
-                    energyTargets.push(struct);
-                }
-            }
-        });
-
-        // Get the closest to the current position
-        const closest = this._creep.pos.findClosestByPath(energyTargets);
-
-        // Save the target to memory and return
-        return this._creep.memory.currentTaskTargetId = closest?.id;
-    }
-
     /** Returns whether the managed creep is next to the provided position */
     public isNextTo(position: RoomPosition) {
         return this._creep.pos.inRangeTo(position, 1);
@@ -118,13 +75,55 @@ export abstract class CreepController<TCreepType extends Creep = Creep> {
 
     /** Sets the current task of the managed creep */
     public setTask(task: CreepTasks) {
+        if (this._creep.memory.currentTask === null) {
+            this.sayNewTask(task);
+        }
         this._creep.memory.currentTask = task;
     }
 
     public creepIsFull(): boolean {
-        return this._creep.carry.energy === this._creep.carryCapacity;
+        return StorageUtils.storeIsFull(this._creep);
     }
+
     public creepIsEmpty(): boolean {
-        return this._creep.carry.energy === 0;
+        StorageUtils.storeIsEmpty(this._creep);
+        return this._creep.store.energy === 0;
+    }
+
+    /** Get the creep to say when they're switching tasks */
+    private sayNewTask(task: CreepTasks) {
+        let sayText: string;
+        switch (task) {
+            case CreepTasks.mining:
+                sayText = "⛏ Mine";
+                break;
+            case CreepTasks.depositingEnergy:
+                sayText = "⚡ Deposit";
+                break;
+            case CreepTasks.collectingEnergy:
+                sayText = "🔌 Collect";
+                break;
+            case CreepTasks.building:
+                sayText = "🛠 Build";
+                break;
+            case CreepTasks.repairing:
+                sayText = "🛠 Repair";
+                break;
+            case CreepTasks.upgrading:
+                sayText = "⬆ Upgrade";
+                break;
+            case CreepTasks.fillingSpawns:
+                sayText = "➕ Spawn";
+                break;
+            case CreepTasks.maintaining:
+                sayText = "🔫 Towers";
+                break;
+            case CreepTasks.transporting:
+                sayText = "🚚 Storing";
+                break;
+            default:
+                sayText = "Unknown";
+        }
+        this._creep.say(sayText);
     }
 }

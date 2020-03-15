@@ -34,16 +34,42 @@ export class AllRounderCreepController extends CreepController {
      * Build Structures, Fill Spawn, Upgrade, Collect Energy, Mine Energy
      */
     public control() {
-        if (this.memory.currentTask === CreepTasks.building) {
-            // Continue building / travelling to build site
-            this.modules.build.buildConstructionSite();
-        } else if (this.memory.currentTask === CreepTasks.fillingSpawns) {
-            this.modules.fill.fillClosest();
-        } else if (this.memory.currentTask === CreepTasks.upgrading) {
-            // Continue upgrading / travelling to controller
-            this.modules.upgrade.upgradeController();
-        } else if (this.creepIsFull()) {
-            this.getNewTaskForCreep();
+        switch (this.memory.currentTask) {
+            case CreepTasks.collectingEnergy: // Continue collecting / travelling to container
+                this.modules.transfer.retrieveEnergy();
+                break;
+            case CreepTasks.building: // Continue building / travelling to build site
+                this.modules.build.buildConstructionSite();
+                break;
+            case CreepTasks.fillingSpawns: // Continue filling / travelling to spawns / extensions
+                this.modules.fill.fillClosest();
+                break;
+            case CreepTasks.upgrading: // Continue upgrading / travelling to controller
+                this.modules.upgrade.upgradeController();
+                break;
+            default:
+                this.getNewTaskForCreep();
+                break;
+        }
+    }
+
+    /** Called when a cree is full of energy and needs something do do with it */
+    protected getNewTaskForCreep() {
+        if (super.creepIsFull()) {
+            if (this.modules.build.roomHasConstructionSites()) {
+                // Try building
+                super.setTask(CreepTasks.building);
+                this.modules.build.buildConstructionSite();
+            } else {
+                // Try filling spawn energy
+                const response = this.modules.fill.fillClosest();
+
+                if (response !== CustomActionResponse.ok) {
+                    // Upgrade instead
+                    super.setTask(CreepTasks.upgrading);
+                    this.modules.upgrade.upgradeController();
+                }
+            }
         } else {
             // Retrieve energy from the closest storage
             super.setTask(CreepTasks.collectingEnergy);
@@ -56,23 +82,4 @@ export class AllRounderCreepController extends CreepController {
             }
         }
     }
-
-    /** Called when a cree is full of energy and needs something do do with it */
-    private getNewTaskForCreep() {
-        if (this.modules.build.roomHasConstructionSites()) {
-            // Try building
-            super.setTask(CreepTasks.building);
-            this.modules.build.buildConstructionSite();
-        } else {
-            // Try filling spawn energy
-            const response = this.modules.fill.fillClosest();
-
-            if (response !== CustomActionResponse.ok) {
-                // Upgrade instead
-                super.setTask(CreepTasks.upgrading);
-                this.modules.upgrade.upgradeController();
-            }
-        }
-    }
-
 }

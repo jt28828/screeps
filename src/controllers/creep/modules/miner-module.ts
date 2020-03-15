@@ -1,31 +1,33 @@
 import { CreepControllerModule } from "./base/creep-controller-module";
+import { CustomActionResponse } from "../../../enums/custom-action-response";
 
 /** Adds the ability for a creep to mine */
 export class MinerModule extends CreepControllerModule {
 
     /** Collects energy from a source */
-    public mineForEnergy() {
+    public mineForEnergy(): CustomActionResponse {
         let source: Source;
         if (!this.creepHasMiningTarget()) {
             const newTarget = this.getNewMiningTarget();
             if (newTarget == null) {
                 // Couldn't find a source
-                return;
+                return CustomActionResponse.noEntitiesPresent;
             }
             source = newTarget;
-
+            this._creep.memory.currentTaskTargetId = source.id;
         } else {
             // Source's can't be deleted so force type as it'll always return the source, not null
-            source = Game.getObjectById(this._creep.memory.currentTaskTargetId) as Source;
+            source = Game.getObjectById(this._creep.memory.currentTaskTargetId as Id<Source>) as Source;
         }
 
-        if (this._creep.pos.inRangeTo(source.pos, 1)) {
-            // Is close enough to harvest
-            this._creep.harvest(source);
-        } else {
+        const response = this._creep.harvest(source);
+
+        if (response === ERR_NOT_IN_RANGE) {
             // Needs to move closer
             this._controller.moveTo(source.pos);
         }
+
+        return CustomActionResponse.ok;
     }
 
     /** Returns whether the current creep has selected an energy storage target for collection or depositing */
@@ -52,8 +54,6 @@ export class MinerModule extends CreepControllerModule {
             this._creep.suicide();
             return null;
         }
-
-        this._creep.memory.currentTaskTargetId = closestSource.id;
         return closestSource;
     }
 }

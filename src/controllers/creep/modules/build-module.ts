@@ -6,7 +6,6 @@ export class BuildModule extends CreepControllerModule {
 
     /** Builds the closest construction site */
     public buildConstructionSite(): CustomActionResponse {
-
         if (this._controller.memory.currentTaskTargetId !== undefined) {
             // Creep has a target.
             const constructionSite = this.getTargetConstructionSite(this._controller.memory.currentTaskTargetId);

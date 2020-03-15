@@ -17,18 +17,28 @@ export class UpgraderCreepController extends CreepController {
     }
 
     public control(): void {
-        if (super.memory.currentTask === CreepTasks.upgrading) {
-            // Upgrade
+        switch (super.memory.currentTask) {
+            case CreepTasks.collectingEnergy: // Collect energy
+                this.modules.transfer.retrieveEnergy();
+                break;
+            case CreepTasks.upgrading: // Upgrade
+                this.modules.upgrade.upgradeController();
+                break;
+            default:
+                this.getNewTaskForCreep();
+                break;
+        }
+    }
+
+    protected getNewTaskForCreep() {
+        if (super.creepIsFull()) {
+            // Start upgrading
+            super.setTask(CreepTasks.upgrading);
             this.modules.upgrade.upgradeController();
         } else {
-            if (super.creepIsFull()) {
-                // Start upgrading
-                super.setTask(CreepTasks.upgrading);
-                this.modules.upgrade.upgradeController();
-            } else {
-                // Collect energy
-                this.modules.transfer.retrieveEnergy();
-            }
+            // Collect energy
+            super.setTask(CreepTasks.collectingEnergy);
+            this.modules.transfer.retrieveEnergy();
         }
     }
 }
