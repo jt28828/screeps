@@ -67,8 +67,8 @@ export class MinerModule extends CreepControllerModule {
 
         const closestSource = this._creep.pos.findClosestByPath(sources, {});
 
-        if (closestSource == null) {
-            console.error("A mining creep is in a room with no sources or all the sources were already full");
+        if (closestSource == null && this._controller._roomState.room.memory.sourceCount === 0) {
+            console.error("A mining creep is in a room with no sources");
             // Kill the creep
             this._creep.say("I have no reason to live");
             Game.notify(`You have more miner creeps than sources in room: ${this._controller._roomState.room.name}`);
