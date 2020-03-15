@@ -1,34 +1,50 @@
-import { IMyCreepMemory } from "../interfaces/my-creep";
-import { INewCreep } from "../interfaces/new-creep";
-import { MyCreepRoles } from "../types/roles";
-
 /** Contains functions used for generating creeps of different types and levels */
+import { CreepRole } from "../enums/creep-role";
+import { ICreepGenerationData } from "../models/interfaces/creep-generation-data";
+
 export class CreepFactory {
     /** Returns the data required to get the game to generate a creep */
-    public static generateCreep(type: MyCreepRoles, room: Room): INewCreep {
+    public static generateCreep(type: CreepRole, room: Room): ICreepGenerationData {
         switch (type) {
-            case MyCreepRoles.upgrader:
+            case CreepRole.transporter:
+                return this.generateTransporter(room);
+            case CreepRole.upgrader:
                 return this.generateUpgrader(room);
-            case MyCreepRoles.builder:
+            case CreepRole.builder:
                 return this.generateBuilder(room);
-            case MyCreepRoles.miner:
+            case CreepRole.miner:
                 return this.generateMiner(room);
-            case MyCreepRoles.claimer:
-                return this.generateClaimer();
             default:
-                // Default is harvester
-                return this.generateHarvester(room);
+                // Default is all-rounder
+                return this.generateAllRounder();
         }
     }
 
     /**
-     * Generates a Claimer creep. Claimers are only available from level 2
-     * Requires 600 Energy (1 Spawn + 4 Extensions)
+     * Generates an all-rounder creep, the starting out creep.
+     * Costs 250 energy for each
      */
-    private static generateClaimer(): INewCreep {
-        const memory = this.generateMemory(MyCreepRoles.claimer);
-        const name = `CLMR-${Game.time.toString()}`;
-        const bodyParts = [MOVE, CLAIM];
+    private static generateAllRounder(): ICreepGenerationData {
+        const memory = this.generateMemory(CreepRole.allRounder);
+        const name = `MASTER-OF-NONE-${Game.time.toString()}`;
+        const bodyParts: BodyPartConstant[] = [WORK, CARRY, CARRY, MOVE];
+
+        return {
+            bodyParts,
+            name,
+            spawnOptions: {memory},
+        };
+    }
+
+    /***
+     * Creates a new transporter creep
+     */
+    private static generateTransporter(room: Room): ICreepGenerationData {
+        const memory = this.generateMemory(CreepRole.transporter);
+        const name = `LIFT-THE-FEELS-AWAY-${Game.time.toString()}`;
+
+        // Don't need WORK parts at all
+        const bodyParts = this.generateMaxLeftoverParts(room.energyAvailable);
         return {
             bodyParts,
             name,
@@ -37,27 +53,15 @@ export class CreepFactory {
     }
 
     /**
-     * Generates a level 3 harvester creep
-     * Requires 500 Energy (1 Spawn + 4 Extensions)
+     * Generates an upgrader creep.
      */
-    private static generateHarvester(room: Room): INewCreep {
-        const memory = this.generateMemory(MyCreepRoles.harvester);
-        const name = `HRVSTR-${Game.time.toString()}`;
-        const bodyParts = this.generateMaxWorkerBodyParts(room);
-        return {
-            bodyParts,
-            name,
-            spawnOptions: {memory},
-        };
-    }
+    private static generateUpgrader(room: Room): ICreepGenerationData {
+        const memory = this.generateMemory(CreepRole.upgrader);
+        const name = `HARDER-BETTER-FASTER-${Game.time.toString()}`;
+        const defaultParts: BodyPartConstant[] = [WORK];
 
-    /**
-     * Generates a upgrader creep.
-     */
-    private static generateUpgrader(room: Room): INewCreep {
-        const memory = this.generateMemory(MyCreepRoles.upgrader);
-        const name = `UPGRDR-${Game.time.toString()}`;
-        const bodyParts = this.generateMaxWorkerBodyParts(room);
+        // Needs a single WORK part
+        const bodyParts = [...defaultParts, ...this.generateMaxLeftoverParts(room.energyAvailable - BODYPART_COST[WORK])];
         return {
             bodyParts,
             name,
@@ -68,63 +72,78 @@ export class CreepFactory {
     /**
      * Generates a builder creep.
      */
-    private static generateBuilder(room: Room): INewCreep {
-        const memory = this.generateMemory(MyCreepRoles.builder);
-        const name = `BLDR-${Game.time.toString()}`;
-        const bodyParts = this.generateMaxWorkerBodyParts(room);
-        return {
-            bodyParts,
-            name,
-            spawnOptions: {memory},
-        };
-    }
+    private static generateBuilder(room: Room): ICreepGenerationData {
+        const memory = this.generateMemory(CreepRole.builder);
+        const name = `IM-ON-SMOKO-${Game.time.toString()}`;
 
-    /**
-     * Generates a miner creep
-     */
-    private static generateMiner(room: Room): INewCreep {
-        const memory = this.generateMemory(MyCreepRoles.miner);
-        const name = `MNR-${Game.time.toString()}`;
-        const bodyParts = this.generateMaxWorkerBodyParts(room);
-        return {
-            bodyParts,
-            name,
-            spawnOptions: {memory},
-        };
-    }
+        // Builders need at least 1 work part and 2 other parts to support it
+        const workParts: BodyPartConstant[] = [WORK, CARRY];
 
-    /**
-     * Generates the maximum amount of body parts available for this creep with the current energy in the room.
-     * Only used for worker creeps as there are no attacking parts
-     * */
-    private static generateMaxWorkerBodyParts(currentRoom: Room): BodyPartConstant[] {
-        const workCost = 100;
-        const currentEnergy = currentRoom.energyAvailable;
+        const layerCosts = BODYPART_COST[CARRY] + BODYPART_COST[MOVE];
 
-        /**
-         * Parts are split into 6ths
-         * 1/6th are work parts
-         * 2/6th are carry parts
-         * 3/6th are move parts
-         */
-        const requiredWorkParts = Math.floor(currentEnergy / workCost / 6);
-        const requiredCarryParts = requiredWorkParts * 2;
-        const requiredMoveParts = requiredWorkParts * 3;
-
-        if (requiredWorkParts <= 1 || requiredCarryParts <= 1) {
-            // Returns the most basic creep possible. Requires 200 energy
-            return [WORK, CARRY, MOVE];
+        let currentBudget = layerCosts;
+        let leftoverEnergy = room.energyAvailable - (BODYPART_COST[WORK] + BODYPART_COST[CARRY]);
+        while (leftoverEnergy >= currentBudget) {
+            // Add as many work parts as possible to the builder so it can build faster
+            workParts.push(WORK);
+            currentBudget += layerCosts;
+            leftoverEnergy -= BODYPART_COST[WORK];
         }
-        // Finally create an array of body parts and join together to return
-        const workParts: BodyPartConstant[] = Array(requiredWorkParts).fill(WORK);
-        const carryParts: BodyPartConstant[] = Array(requiredCarryParts).fill(CARRY);
-        let moveParts: BodyPartConstant[] = Array(requiredMoveParts).fill(MOVE);
 
-        return [...workParts, ...carryParts, ...moveParts];
+        const bodyParts = [...workParts, ...this.generateMaxLeftoverParts(leftoverEnergy)];
+        return {
+            bodyParts,
+            name,
+            spawnOptions: {memory},
+        };
+    }
+
+    /**
+     * Generates a miner creep.
+     * Miners have high work potential but low movement.
+     * Requires minimum 300 energy to spawn
+     */
+    private static generateMiner(room: Room): ICreepGenerationData {
+        const memory = this.generateMemory(CreepRole.miner);
+        const name = `ITS-OFF-TO-WORK-I-GO-${Game.time.toString()}`;
+        const bodyParts: (WORK | MOVE)[] = [WORK, WORK, MOVE, MOVE];
+
+        let minerCost = bodyParts
+            .map(part => BODYPART_COST[part])
+            .reduce((prev, current) => prev + current);
+
+
+        while (room.energyAvailable >= minerCost && bodyParts.length < 7) {
+            // A creep with 5 WORK parts should be able to empty out a source each regen
+            bodyParts.push(WORK);
+            minerCost += BODYPART_COST[WORK];
+        }
+
+        return {
+            bodyParts,
+            name,
+            spawnOptions: {memory},
+        };
+    }
+
+    /**
+     * Generates the maximum amount of alternating move and carry parts possible.
+     * Parts can be added before this to customise a creep
+     * */
+    private static generateMaxLeftoverParts(energyBudget: number): BodyPartConstant[] {
+        const layerCost = BODYPART_COST[MOVE] + BODYPART_COST[CARRY];
+        let energyLeft = energyBudget;
+        let bodyParts: BodyPartConstant[] = [];
+        while (energyLeft >= 100) {
+            // Add "Layers" of parts to the creep until there's no energy left for another layer. Min amount is 100 energy
+            bodyParts = bodyParts.concat([MOVE, CARRY]);
+            energyLeft -= layerCost;
+        }
+        return bodyParts;
     }
 
     /** Generates a creep's memory */
-    private static generateMemory(role: MyCreepRoles): IMyCreepMemory {
-        return {role, stuckCounter: 0};
+    private static generateMemory(currentRole: CreepRole): CreepMemory {
+        return {currentRole, stuckCounter: 0};
     }
 }

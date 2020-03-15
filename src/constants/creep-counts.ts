@@ -1,11 +1,37 @@
-import { ICreepCounts } from "../interfaces/creep-counts";
+import { ICreepCounts } from "../models/interfaces/creep-counts";
+import { RoomLevels } from "../enums/room-levels";
 
-export const maxRemoteBuilderCount: number = 4;
+type creepCountType = { [Level in RoomLevels]: ICreepCounts };
 
-// The maximum amount of creeps of each type that should be generated
-export const maxCreepCounts: ICreepCounts = {
-    builder: 2,
-    harvester: 2,
-    miner: 3,
-    upgrader: 2,
+export const maxCreepCounts: creepCountType = {
+    // Level 0
+    [RoomLevels.starter]: {
+        allRounder: 2,
+        miner: 0,
+        transporter: 0,
+        upgrader: 0,
+        builder: 0,
+        claimer: 0,
+        attacker: 0
+    },
+    // Level 1
+    [RoomLevels.hasEnergy]: {
+        allRounder: 0,
+        miner: 1,
+        transporter: 1,
+        upgrader: 1,
+        builder: 1,
+        claimer: 0,
+        attacker: 0
+    },
+    // Level 2
+    [RoomLevels.hasEnergyAndMultipleSources]: {
+        allRounder: 0,
+        miner: 2,
+        transporter: 1,
+        upgrader: 1,
+        builder: 1,
+        claimer: 0,
+        attacker: 0
+    }
 };
