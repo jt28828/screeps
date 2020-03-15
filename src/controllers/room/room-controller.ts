@@ -10,6 +10,7 @@ import { BuilderCreepController } from "../creep/builder-creep-controller";
 import { CreepController } from "../creep/base/creep-controller";
 import { TowerController } from "../structure/tower-controller";
 import { SpawnController } from "../structure/spawn-controller";
+import { RoomLevels } from "../../enums/room-levels";
 
 export class RoomController {
     private readonly _room: Room;
@@ -39,7 +40,8 @@ export class RoomController {
     private static createDefaultRoomMemory(room: Room): RoomMemory {
         return {
             roomStatus: RoomStatus.unclaimed,
-            currentLevel: 0,
+            currentLevel: RoomLevels.starter,
+            sourceCount: 1,
             damagedStructureIds: [],
             enemyIds: [],
             structureIds: [],
@@ -140,12 +142,17 @@ export class RoomController {
 
     /** Figures out the custom level of the room, used to perform different actions depending on how well a room is going */
     private calculateRoomLevel() {
-        if (this._room.energyAvailable < 350) {
-            // Room has less than 2 extensions filled with energy, default to level 0
-            this._room.memory.currentLevel = 0;
+        const roomExtensions = this._roomState.myStructures.filter(struct => struct.structureType === STRUCTURE_EXTENSION);
+
+        if (roomExtensions.length < 2 || this._room.energyAvailable < 300) {
+            // Room has less than 2 extensions or is running low on energy, reset to level 0
+            this._room.memory.currentLevel = RoomLevels.starter;
+        } else if (this._room.memory.sourceCount < 2) {
+            // Room has more than 2 extensions filled, but is only a 1 source room, upgrade to level 1
+            this._room.memory.currentLevel = RoomLevels.hasEnergy;
         } else {
-            // Room has less than 4 extensions filled, upgrade to level 1
-            this._room.memory.currentLevel = 1;
+            // Room has more than 2 extensions and 2 sources upgrade to level 2
+            this._room.memory.currentLevel = RoomLevels.hasEnergyAndMultipleSources;
         }
     }
 

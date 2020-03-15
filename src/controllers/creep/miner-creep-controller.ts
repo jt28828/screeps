@@ -9,7 +9,7 @@ export class MinerCreepController extends CreepController {
     constructor(roomState: RoomMemoryManager, creep: Creep) {
         super(roomState, creep);
         this.modules = {
-            mine: new MinerModule(creep, this),
+            mine: new MinerModule(creep, this, true),
             transfer: new EnergyTransferModule(creep, this)
         }
     }

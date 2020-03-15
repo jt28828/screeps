@@ -1,8 +1,16 @@
 import { CreepControllerModule } from "./base/creep-controller-module";
 import { CustomActionResponse } from "../../../enums/custom-action-response";
+import { CreepController } from "../base/creep-controller";
+import { CreepRole } from "../../../enums/creep-role";
 
 /** Adds the ability for a creep to mine */
 export class MinerModule extends CreepControllerModule {
+    private readonly _forMiner: boolean;
+
+    constructor(creep: Creep, controller: CreepController, forSpecialisedMiner: boolean = false) {
+        super(creep, controller);
+        this._forMiner = forSpecialisedMiner;
+    }
 
     /** Collects energy from a source */
     public mineForEnergy(): CustomActionResponse {
@@ -36,13 +44,25 @@ export class MinerModule extends CreepControllerModule {
     }
 
     /** Finds the closest source in the room to the current creep and sets that as their permanent target */
-    public getNewMiningTarget(excludeSourceId?: string): Source | null {
+    public getNewMiningTarget(): Source | null {
         // Creep hasn't been assigned a target yet. Assign it and save in the room's memory as well.
         let sources = this._controller._roomState.room.find(FIND_SOURCES);
 
-        // Strip out excluded sources
-        if (excludeSourceId != null) {
-            sources = sources.filter(source => source.id !== excludeSourceId);
+        if (this._forMiner) {
+            // This module is being used for a specialised miner, only return them a source that doesn't have a miner creep next to it
+            // Can be expensive but should only be run once for the lifetime of each miner
+            const approvedSources: Source[] = [];
+
+            const otherMiners = this._controller._roomState.myCreeps.filter(creep => creep.memory.currentRole === CreepRole.miner);
+
+            for (let i = 0; i < sources.length; i++) {
+                if (otherMiners.every(miner => miner.memory.currentTaskTargetId !== sources[i].id)) {
+                    // No miners have this source as their target, add it to the approved list
+                    approvedSources.push(sources[i]);
+                }
+            }
+
+            sources = approvedSources;
         }
 
         const closestSource = this._creep.pos.findClosestByPath(sources, {});
@@ -51,9 +71,11 @@ export class MinerModule extends CreepControllerModule {
             console.error("A mining creep is in a room with no sources or all the sources were already full");
             // Kill the creep
             this._creep.say("I have no reason to live");
+            Game.notify(`You have more miner creeps than sources in room: ${this._controller._roomState.room.name}`);
             this._creep.suicide();
             return null;
         }
+
         return closestSource;
     }
 }

@@ -1,5 +1,6 @@
 import { CreepRole } from "../../enums/creep-role";
 import { RoomStatus } from "../../enums/room-status";
+import { RoomLevels } from "../../enums/room-levels";
 
 declare global {
     interface MyMemory {
@@ -12,7 +13,8 @@ declare global {
 
     interface RoomMemory {
         roomStatus: RoomStatus;
-        currentLevel: number,
+        currentLevel: RoomLevels,
+        sourceCount: number,
         damagedStructureIds: string[];
         enemyIds: string[];
         structureIds: string[];

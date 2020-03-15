@@ -5,7 +5,6 @@ export class CreepControllerModule<TCreepType extends Creep = Creep> {
     protected _creep: Creep;
     protected _controller: CreepController<TCreepType>;
 
-
     constructor(creep: Creep, controller: CreepController<TCreepType>) {
         this._creep = creep;
         this._controller = controller;
