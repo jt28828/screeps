@@ -15,7 +15,7 @@ import { RoomLevels } from "../../enums/room-levels";
 export class RoomController {
     private readonly _room: Room;
     private readonly _roomFlags: ReadonlyArray<Flag>;
-    private readonly _roomState!: RoomMemoryManager;
+    private readonly _roomState: RoomMemoryManager;
 
 
     constructor(room: Room) {
@@ -25,15 +25,11 @@ export class RoomController {
             if (this._room.memory.roomStatus === undefined || this._room.memory.currentLevel === undefined) {
                 this._room.memory = RoomController.createDefaultRoomMemory(room);
             }
-            if (this._room.memory.roomStatus === RoomStatus.owned) {
-                this._roomState = new RoomMemoryManager(this._room);
-            } else {
-                this._roomState = new RoomMemoryManager(this._room);
-            }
+            this._roomState = new RoomMemoryManager(this._room, this._roomFlags);
 
         } else {
             // Room doesn't exist? (It always should)
-            this._roomFlags = [];
+            throw new Error("Tried to control a room that no longer exists");
         }
     }
 

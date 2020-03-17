@@ -48,9 +48,9 @@ export class SpawnController {
 
         if (creepType !== undefined) {
             // Create the creep
-            const newCreep = CreepFactory.generateCreep(creepType, this._roomState.room);
+            const roomIsMaxedOut = this._roomState.room.controller?.level === 8;
+            const newCreep = CreepFactory.generateCreep(creepType, this._roomState.room, roomIsMaxedOut);
             this._spawner.spawnCreep(newCreep.bodyParts, newCreep.name, newCreep.spawnOptions);
-        } else {
         }
     }
 }

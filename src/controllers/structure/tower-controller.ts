@@ -34,13 +34,18 @@ export class TowerController {
 
     /** Attacks the weakest enemy. Should allow multiple towers to "Gang up" on a single creep */
     private attackEnemy() {
-        const weakestEnemy = this._roomState.enemies[0];
+        const weakestEnemy = this._roomState.enemies
+            .sort((a, b) => a.hits - b.hits)[0];
         this._tower.attack(weakestEnemy);
     }
 
-    /** Heals the most damaged structure. Should allow multiple towers to team up on repairs */
+    /**
+     * Heals the most damaged structure. Should allow multiple towers to team up on repairs.
+     * Only allows healing structures to less than 15,000,000 hit points
+     */
     private healStructure() {
-        const mostDamaged = this._roomState.damagedStructures[0];
+        const mostDamaged = this._roomState.damagedStructures
+            .sort((structA, structB) => structA.hits - structB.hits)[0];
         this._tower.repair(mostDamaged);
     }
 }

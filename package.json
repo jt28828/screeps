@@ -1,6 +1,6 @@
 {
   "name": "james-screeps",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "My repo for the screeps game",
   "main": "main.js",
   "scripts": {

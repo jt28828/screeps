@@ -59,18 +59,36 @@ export class TransporterCreepController extends CreepController {
             const response = this.modules.filling.fillClosest();
 
             if (response !== CustomActionResponse.ok) {
-                // Failed to fill spawn, fill towers instead
-                this.setTask(CreepTasks.maintaining);
-                const towerResponse = this.modules.maintenance.fillTowers();
-
-                if (towerResponse !== CustomActionResponse.ok) {
-                    // Also failed to fill towers, move energy to storage as last resort
-                    this.setTask(CreepTasks.transporting);
-                    this.modules.transfer.depositToStorage();
-                }
+                // Failed to fill spawn, fill towers or storage instead
+                this.fillTowersOrStorage();
             }
         } else {
             this.pickupOrCollect();
+        }
+    }
+
+    /** Fills towers or storage depending on certain requirements */
+    private fillTowersOrStorage() {
+        if (this._roomState.roomFlags.some(flag => flag.name.includes("stockpile"))) {
+            // Should store in storage over storing in towers
+            this.setTask(CreepTasks.transporting);
+            const storageResponse = this.modules.transfer.depositToStorage();
+
+            if (storageResponse !== CustomActionResponse.ok) {
+                // Also failed to fill storage, move energy to towers as last resort
+                this.setTask(CreepTasks.maintaining);
+                this.modules.maintenance.fillTowers();
+            }
+        } else {
+            // Prioritise towers over storage
+            this.setTask(CreepTasks.maintaining);
+            const towerResponse = this.modules.maintenance.fillTowers();
+
+            if (towerResponse !== CustomActionResponse.ok) {
+                // Also failed to fill towers, move energy to storage as last resort
+                this.setTask(CreepTasks.transporting);
+                this.modules.transfer.depositToStorage();
+            }
         }
     }
 

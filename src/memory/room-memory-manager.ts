@@ -14,8 +14,8 @@ export class RoomMemoryManager {
     private _constructionSites?: ConstructionSite[];
     private _myCreeps?: Creep[];
     private _droppedEnergy?: Resource[];
-
     public roomStatus: RoomStatus;
+    public roomFlags: ReadonlyArray<Flag>;
 
     public get damagedStructures(): Structure[] {
         if (this._damagedStructures === undefined) {
@@ -78,8 +78,9 @@ export class RoomMemoryManager {
         return this._droppedEnergy;
     }
 
-    constructor(room: Room) {
+    constructor(room: Room, roomFlags: ReadonlyArray<Flag>) {
         this.room = room;
+        this.roomFlags = roomFlags;
         this.roomStatus = this.room.memory.roomStatus;
     }
 
@@ -96,8 +97,9 @@ export class RoomMemoryManager {
             .filter(creep => allyUsernames.indexOf(creep.owner.username) === -1)
             .sort((a, b) => a.hits - b.hits);
 
+        // Only heal walls up to a max of 10 million
         const damagedStructures = allStructures
-            .filter((x) => x.hits < x.hitsMax)
+            .filter((x) => x.hits < x.hitsMax && x.hits < 10_000_000)
             .sort((a, b) => a.hits - b.hits);
 
         const roomIsOwned = this.room.controller?.my;
