@@ -133,11 +133,12 @@ export class RoomMemoryManager {
     /** Figures out the custom level of the room, used to perform different actions depending on how well a room is going */
     public calculateRoomLevel(): this {
         const roomExtensions = this.myStructures.filter(struct => struct.structureType === STRUCTURE_EXTENSION);
+        const numberOfCreeps = this.myCreeps.length;
 
-        if (roomExtensions.length < 2 || this.room.energyAvailable < 500) {
-            // Room has less than 2 extensions or is running low on energy, reset to level 0
+        if (roomExtensions.length < 2 || (this.room.energyAvailable < 500 && numberOfCreeps < 3)) {
+            // Room has less than 2 extensions or is performing badly.
             this.room.memory.currentLevel = RoomLevels.starter;
-        } else if (this.room.memory.sourceCount < 2) {
+        } else if ((this.room.memory.sourceCount < 2)) {
             // Room has more than 2 extensions filled, but is only a 1 source room, upgrade to level 1
             this.room.memory.currentLevel = RoomLevels.hasEnergy;
         } else {

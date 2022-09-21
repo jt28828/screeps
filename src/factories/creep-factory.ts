@@ -50,7 +50,7 @@ export class CreepFactory {
         const name = `STATHAM-${Game.time.toString()}`;
 
         // Only needs alternating move and carry parts to transport energy
-        const bodyParts = this.addLayers(room, [MOVE, CARRY], room.energyAvailable - BODYPART_COST[WORK], 1);
+        const bodyParts = this.addLayers(room, [MOVE, CARRY], BODYPART_COST[WORK], 1);
 
         return {
             bodyParts: [...bodyParts, WORK],
@@ -83,7 +83,7 @@ export class CreepFactory {
         const name = `MAINTAINERBOT-${Game.time.toString()}`;
 
         // Add alternating move and carry parts until full
-        const leftoverParts = this.addLayers(room, [MOVE, CARRY], room.energyAvailable - BODYPART_COST[WORK], 1);
+        const leftoverParts = this.addLayers(room, [MOVE, CARRY], BODYPART_COST[WORK], 1);
 
         // Needs a single WORK part, otherwise fill with move and carry parts
         const bodyParts = [WORK, ...leftoverParts];
