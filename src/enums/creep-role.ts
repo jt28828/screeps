@@ -5,5 +5,6 @@ export const enum CreepRole {
     upgrader,
     builder,
     claimer,
-    attacker
+    attacker,
+    traveller
 }

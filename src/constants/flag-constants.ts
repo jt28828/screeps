@@ -25,3 +25,5 @@ export const groupBuildingFlags: ReadonlyArray<GroupBuildingFlags> = [
 ];
 
 export const priorityBuildFlag = "priorityBuild";
+export const remoteRoomDestination = "destination";
+export const createTraveller = "travel";

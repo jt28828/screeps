@@ -23,4 +23,12 @@ declare global {
     interface MinerCreepMemory extends CreepMemory {
         containerTargetId?: Id<StructureContainer>;
     }
+
+    interface TravellerCreep extends Creep {
+        memory: TravellerCreepMemory;
+    }
+
+    interface TravellerCreepMemory extends CreepMemory {
+        hasReachedDestination?: boolean;
+    }
 }

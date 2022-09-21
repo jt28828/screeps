@@ -16,6 +16,8 @@ export class CreepFactory {
                 }
             case CreepRole.builder:
                 return this.generateBuilder(room);
+            case CreepRole.traveller:
+                return this.generateTraveller(room);
             case CreepRole.miner:
                 return this.generateMiner(room);
             default:
@@ -47,10 +49,11 @@ export class CreepFactory {
         const memory = this.generateMemory(CreepRole.transporter);
         const name = `STATHAM-${Game.time.toString()}`;
 
-        // Don't need WORK parts at all
-        const bodyParts = this.generateMaxLeftoverParts(room.energyAvailable);
+        // Only needs alternating move and carry parts to transport energy
+        const bodyParts = this.addLayers(room, [MOVE, CARRY], room.energyAvailable - BODYPART_COST[WORK], 1);
+
         return {
-            bodyParts,
+            bodyParts: [...bodyParts, WORK],
             name,
             spawnOptions: {memory},
         };
@@ -77,11 +80,13 @@ export class CreepFactory {
      */
     private static generateDelayedUpgrader(room: Room): ICreepGenerationData {
         const memory = this.generateMemory(CreepRole.upgrader);
-        const name = `HARDER-BETTER-FASTER-${Game.time.toString()}`;
-        const defaultParts: BodyPartConstant[] = [WORK];
+        const name = `MAINTAINERBOT-${Game.time.toString()}`;
 
-        // Needs a single WORK part
-        const bodyParts = [...defaultParts, ...this.generateMaxLeftoverParts(room.energyAvailable - BODYPART_COST[WORK])];
+        // Add alternating move and carry parts until full
+        const leftoverParts = this.addLayers(room, [MOVE, CARRY], room.energyAvailable - BODYPART_COST[WORK], 1);
+
+        // Needs a single WORK part, otherwise fill with move and carry parts
+        const bodyParts = [WORK, ...leftoverParts];
         return {
             bodyParts,
             name,
@@ -112,18 +117,34 @@ export class CreepFactory {
     private static generateMiner(room: Room): ICreepGenerationData {
         const memory = this.generateMemory(CreepRole.miner);
         const name = `ITS-OFF-TO-WORK-I-GO-${Game.time.toString()}`;
-        const bodyParts: (WORK | MOVE)[] = [WORK, WORK, MOVE, MOVE];
+        const bodyParts: (BodyPartConstant)[] = [WORK, WORK, MOVE, MOVE];
 
         let minerCost = bodyParts
             .map(part => BODYPART_COST[part])
             .reduce((prev, current) => prev + current);
 
+        // Just add work parts to the miner until it's full.
+        // Only need to add 3 more at most because that will empty a regen
+        const usedParts = 50 - 3;
 
-        while (room.energyAvailable >= minerCost && bodyParts.length < 7) {
-            // A creep with 5 WORK parts should be able to empty out a source each regen
-            bodyParts.push(WORK);
-            minerCost += BODYPART_COST[WORK];
-        }
+        const workParts = this.addLayers(room, [WORK], minerCost, usedParts);
+
+        bodyParts.push(...workParts);
+
+        return {
+            bodyParts,
+            name,
+            spawnOptions: {memory},
+        };
+    }
+
+    /**
+     * Generates a traveller creep.
+     */
+    private static generateTraveller(room: Room): ICreepGenerationData {
+        const memory = this.generateMemory(CreepRole.traveller);
+        const name = `AROUND-THE-WORLD-IN-${Game.time.toString()}-DAYS`;
+        const bodyParts = this.generateWorker(room);
 
         return {
             bodyParts,
@@ -135,46 +156,42 @@ export class CreepFactory {
     /** Generates a worker creep body, used by upgraders and builders */
     private static generateWorker(room: Room) {
         // Workers need at least 1 work part and 2 other parts to support it
-        const workParts: BodyPartConstant[] = [WORK, CARRY, MOVE];
+        const initialParts: BodyPartConstant[] = [WORK, CARRY, MOVE];
+        const initialPartCost = BODYPART_COST[WORK] + BODYPART_COST[CARRY] + BODYPART_COST[MOVE];
+        const layerCosts = BODYPART_COST[WORK] + BODYPART_COST[MOVE];
 
-        const layerCosts = BODYPART_COST[CARRY] + BODYPART_COST[MOVE];
+        let leftoverEnergy = room.energyAvailable - layerCosts - initialPartCost;
 
-        let currentBudget = layerCosts;
-        let leftoverEnergy = room.energyAvailable - (BODYPART_COST[WORK] + BODYPART_COST[CARRY] + BODYPART_COST[MOVE]);
+        // Set to 20 parts to get maximum 15 layers
+        const workParts = this.addLayers(room, [WORK, MOVE], leftoverEnergy, 20);
 
-        let partCount = 3;
-        while (leftoverEnergy >= currentBudget && partCount < 15) {
-            // Add as many work parts as possible to the worker so it can work faster.
-            // Maximum 15 work parts as the biggest a creep can be is 50 total parts
-            workParts.push(WORK, MOVE);
-            currentBudget += layerCosts;
-            leftoverEnergy -= (BODYPART_COST[WORK] + BODYPART_COST[MOVE]);
-            partCount += 2;
-        }
+        // Add alternating move and carry parts until full
+        const leftoverParts = this.addLayers(room, [MOVE, CARRY], leftoverEnergy, workParts.length + initialParts.length);
 
-        return [...workParts, ...this.generateMaxLeftoverParts(leftoverEnergy, partCount)];
-    }
-
-    /**
-     * Generates the maximum amount of alternating move and carry parts possible.
-     * Parts can be added before this to customise a creep
-     * */
-    private static generateMaxLeftoverParts(energyBudget: number, partCount: number = 0): BodyPartConstant[] {
-        const layerCost = BODYPART_COST[MOVE] + BODYPART_COST[CARRY];
-        let energyLeft = energyBudget;
-        let bodyParts: BodyPartConstant[] = [];
-
-        while (energyLeft >= 100 && partCount < 49) {
-            // Add "Layers" of parts to the creep until there's no energy left for another layer. Min amount is 100 energy
-            bodyParts = bodyParts.concat([MOVE, CARRY]);
-            energyLeft -= layerCost;
-            partCount += 2;
-        }
-        return bodyParts;
+        return [...initialParts, ...workParts, ...leftoverParts];
     }
 
     /** Generates a creep's memory */
     private static generateMemory(currentRole: CreepRole): CreepMemory {
         return {currentRole, stuckCounter: 0};
+    }
+
+    /** Repeatedly adds layers to the creep until full or until energy runs out */
+    private static addLayers(room: Room, layer: BodyPartConstant[], usedEnergy = 0, currentParts = 0) {
+        const layerCost = layer.reduce((total, bodyPart) => total + BODYPART_COST[bodyPart], 0);
+        const maxPartsToAdd = 50 - currentParts;
+
+        const parts: BodyPartConstant[] = [];
+
+        let energyLeft = room.energyAvailable - usedEnergy - layerCost;
+        currentParts += layer.length;
+
+        while (energyLeft >= layerCost && currentParts <= maxPartsToAdd) {
+            parts.push(...layer);
+            energyLeft -= layerCost;
+            currentParts += layer.length;
+        }
+
+        return parts;
     }
 }

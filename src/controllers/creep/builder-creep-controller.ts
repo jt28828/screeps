@@ -15,7 +15,7 @@ export class BuilderCreepController extends CreepController {
         this.modules = {
             transfer: new EnergyTransferModule(creep, this),
             build: new BuildModule(creep, this),
-            repair: new RepairModule(creep, this)
+            repair: new RepairModule(creep, this),
         };
     }
 

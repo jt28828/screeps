@@ -1,6 +1,6 @@
 {
   "name": "james-screeps",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "My repo for the screeps game",
   "main": "main.js",
   "scripts": {
@@ -11,12 +11,12 @@
   "author": "James Turner",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^12.12.28",
-    "@types/screeps": "^3.0.0",
     "screeps-profiler": "^2.0.1"
   },
   "devDependencies": {
     "terser-webpack-plugin": "^1.4.3",
+    "@types/node": "^12.12.28",
+    "@types/screeps": "^3.3.0",
     "webpack": "^4.41.6",
     "webpack-cli": "^3.3.11"
   }

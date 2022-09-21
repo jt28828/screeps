@@ -11,6 +11,8 @@ import { CreepController } from "../creep/base/creep-controller";
 import { TowerController } from "../structure/tower-controller";
 import { SpawnController } from "../structure/spawn-controller";
 import { RoomLevels } from "../../enums/room-levels";
+import { TravellerCreepController } from "../creep/traveller-creep-controller";
+import { createTraveller } from "../../constants/flag-constants";
 
 export class RoomController {
     private readonly _room: Room;
@@ -26,7 +28,6 @@ export class RoomController {
                 this._room.memory = RoomController.createDefaultRoomMemory(room);
             }
             this._roomState = new RoomMemoryManager(this._room, this._roomFlags);
-
         } else {
             // Room doesn't exist? (It always should)
             throw new Error("Tried to control a room that no longer exists");
@@ -96,6 +97,9 @@ export class RoomController {
                 case CreepRole.builder:
                     controller = new BuilderCreepController(this._roomState, creep);
                     break;
+                case CreepRole.traveller:
+                    controller = new TravellerCreepController(this._roomState, creep);
+                    break;
                 default:
                     console.log("An unsupported creep attempted to be controlled");
                     break;
@@ -133,11 +137,22 @@ export class RoomController {
             return;
         }
 
+        const travellerFlag = this._roomFlags.find(flag => flag.name === createTraveller);
+
         const spawnCount = spawns.length;
         for (let i = 0; i < spawnCount; i++) {
-            // Command a spawn to perform an action if applicable
-            new SpawnController(spawns[i] as StructureSpawn, this._roomState).spawn();
+            const spawner = new SpawnController(spawns[i] as StructureSpawn, this._roomState);
+            if (travellerFlag) {
+                // If a traveller has been requested that is the priority
+                spawner.spawnTraveller();
+            } else {
+                // Command a spawn to perform an action if applicable
+                spawner.spawn();
+            }
         }
+
+        // Delete the traveller flag afterwards
+        travellerFlag?.remove();
     }
 
 }

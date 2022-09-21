@@ -2,6 +2,7 @@ import { RoomMemoryManager } from "../../../memory/room-memory-manager";
 import { CreepTasks } from "../../../enums/creep-tasks";
 import { CreepControllerModule } from "../modules/base/creep-controller-module";
 import { StorageUtils } from "../../../utilities/storage-utils";
+import { CreepRole } from "../../../enums/creep-role";
 
 export abstract class CreepController<TCreepType extends Creep = Creep> {
     /** The state of the room the creep is currently in */
@@ -9,7 +10,7 @@ export abstract class CreepController<TCreepType extends Creep = Creep> {
     /** The creep this controller instance is performing actions for */
     protected readonly _creep: TCreepType;
 
-    protected abstract modules: { [key: string]: CreepControllerModule };
+    protected abstract modules: Record<string, CreepControllerModule>;
 
     protected constructor(roomState: RoomMemoryManager, creep: TCreepType) {
         this._roomState = roomState;
@@ -90,6 +91,11 @@ export abstract class CreepController<TCreepType extends Creep = Creep> {
         return this._creep.store.energy === 0;
     }
 
+    public changeRole(type: CreepRole) {
+        this._creep.memory.currentRole = type;
+        this._creep.say("Changing Role");
+    }
+
     /** Get the creep to say when they're switching tasks */
     private sayNewTask(task: CreepTasks) {
         let sayText: string;
@@ -120,6 +126,9 @@ export abstract class CreepController<TCreepType extends Creep = Creep> {
                 break;
             case CreepTasks.transporting:
                 sayText = "🚚 Storing";
+                break;
+            case CreepTasks.travelling:
+                sayText = "🗺 Travelling";
                 break;
             default:
                 sayText = "Unknown";
